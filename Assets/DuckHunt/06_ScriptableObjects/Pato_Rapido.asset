@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac2e6244e238dcb4283e29d52ec44c45, type: 3}
+  m_Name: Pato_Rapido
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyDataSO
+  enemyName: Pato Veloz
+  scorePoints: 250
+  moveSpeed: 6
+  movementPattern: 1
+  waveAmplitude: 1.5
+  waveFrequency: 4.5
+  bodyColor: {r: 0.2, g: 0.6, b: 1, a: 1}
+  scale: {x: 0.6, y: 0.5, z: 0.6}
+  maxLifeTime: 8
