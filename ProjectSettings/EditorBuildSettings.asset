@@ -11,6 +11,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/DuckHunt/00_Scene/MapaDesierto.unity
     guid: 7469bfd61884d1e4aaece7b6fd735cc2
+  - enabled: 1
+    path: Assets/DuckHunt/00_Scene/Mapa2.unity
+    guid: 8f228c802b747894c90ed6a4bf2535f1
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: bfa1182bd221b4ca89619141f66f1260, type: 2}
     Unity.XR.WindowsMR.Settings: {fileID: 11400000, guid: dc5a169419fa04987b057f65238cf3ba, type: 2}
