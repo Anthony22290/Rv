@@ -2,13 +2,21 @@ using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using TMPro;
+using System.Collections;
 
 [RequireComponent(typeof(XRGrabInteractable))]
 public class PistolaVR : MonoBehaviour
 {
+    [Header("Datos del Arma (Scriptable Object)")]
+    public ArmaDataSO datosArma;
+
     [Header("Puntos de Referencia")]
     [Tooltip("Punta del cañón de la pistola desde donde sale la bala y el láser")]
     public Transform puntoDeDisparo;
+    
+    [Tooltip("Texto flotante donde se muestra la munición")]
+    public TextMeshPro textoMunicion;
 
     [Tooltip("Prefab del proyectil / bala")]
     public GameObject balaPrefab;
@@ -30,6 +38,17 @@ public class PistolaVR : MonoBehaviour
     private XRGrabInteractable interactable;
     private LineRenderer laserLine;
 
+    // Control de disparo y recarga
+    private float tiempoUltimoDisparo;
+    private int balasEnCargador;
+    private bool estaRecargando;
+
+    // Detección de agitación (Shake to reload)
+    private Vector3 ultimaPosicion;
+    private float tiempoAgitacion;
+    private int contadorAgitacion;
+    public float umbralAgitacion = 0.05f;
+
     void Awake()
     {
         interactable = GetComponent<XRGrabInteractable>();
@@ -47,6 +66,15 @@ public class PistolaVR : MonoBehaviour
         {
             ConfigurarLaser();
         }
+
+        // Inicializar munición
+        if (datosArma != null)
+        {
+            balasEnCargador = datosArma.capacidadCargador;
+        }
+        
+        ActualizarTextoMunicion();
+        ultimaPosicion = transform.position;
     }
 
     void OnDestroy()
@@ -77,10 +105,11 @@ public class PistolaVR : MonoBehaviour
 
     void Update()
     {
+        bool estaAgarrada = interactable != null && interactable.isSelected;
+
         if (laserLine != null && puntoDeDisparo != null)
         {
             // Solo mostrar el láser si la pistola está siendo sostenida
-            bool estaAgarrada = interactable != null && interactable.isSelected;
             laserLine.enabled = estaAgarrada;
 
             if (estaAgarrada)
@@ -99,16 +128,75 @@ public class PistolaVR : MonoBehaviour
                 laserLine.SetPosition(1, targetPoint);
             }
         }
+
+        // Lógica de Agitar para Recargar
+        if (estaAgarrada && !estaRecargando)
+        {
+            float deltaMovimiento = Vector3.Distance(transform.position, ultimaPosicion);
+            // Reducido significativamente para que detecte mejor en cada frame
+            if (deltaMovimiento > 0.005f) 
+            {
+                contadorAgitacion++;
+                tiempoAgitacion = Time.time;
+            }
+
+            // Si no se ha movido mucho en 0.5s, reiniciar contador
+            if (Time.time - tiempoAgitacion > 0.4f)
+            {
+                contadorAgitacion = 0;
+            }
+
+            // Reducido a 4 movimientos bruscos para que sea más fácil
+            if (contadorAgitacion > 4)
+            {
+                if (datosArma != null && balasEnCargador < datosArma.capacidadCargador)
+                {
+                    StartCoroutine(RutinaRecarga());
+                }
+                contadorAgitacion = 0;
+            }
+        }
+        
+        ultimaPosicion = transform.position;
     }
 
     void Disparar(ActivateEventArgs arg)
     {
+        if (estaRecargando) return;
+
+        if (datosArma != null)
+        {
+            if (Time.time - tiempoUltimoDisparo < datosArma.tiempoDisparo)
+            {
+                return; // Cadencia de tiro (aún no puede disparar)
+            }
+
+            if (balasEnCargador <= 0)
+            {
+                // No dispara si no hay balas. Ahora la recarga es agitando.
+                // Podríamos emitir un sonido de "clic" de cargador vacío aquí
+                return;
+            }
+
+            balasEnCargador--;
+            ActualizarTextoMunicion();
+            tiempoUltimoDisparo = Time.time;
+        }
+
         Transform originTransform = (puntoDeDisparo != null) ? puntoDeDisparo : transform;
 
         // 1. Instanciar la bala en la posición y orientación exacta del cañón
         if (balaPrefab != null)
         {
-            Instantiate(balaPrefab, originTransform.position, originTransform.rotation);
+            GameObject nuevaBala = Instantiate(balaPrefab, originTransform.position, originTransform.rotation);
+            if (datosArma != null)
+            {
+                Bala scriptBala = nuevaBala.GetComponent<Bala>();
+                if (scriptBala != null)
+                {
+                    scriptBala.velocidad = datosArma.velocidadBala;
+                }
+            }
         }
 
         // 2. Feedback Sonoro
@@ -121,6 +209,30 @@ public class PistolaVR : MonoBehaviour
         if (arg.interactorObject is XRBaseInputInteractor inputInteractor)
         {
             inputInteractor.SendHapticImpulse(intensidadVibracion, duracionVibracion);
+        }
+    }
+
+    IEnumerator RutinaRecarga()
+    {
+        estaRecargando = true;
+        if (textoMunicion != null) textoMunicion.text = "R";
+        
+        // Se puede añadir sonido de recarga aquí
+        yield return new WaitForSeconds(datosArma != null ? datosArma.tiempoRecarga : 1.5f);
+        
+        if (datosArma != null)
+        {
+            balasEnCargador = datosArma.capacidadCargador;
+            ActualizarTextoMunicion();
+        }
+        estaRecargando = false;
+    }
+
+    void ActualizarTextoMunicion()
+    {
+        if (textoMunicion != null && datosArma != null)
+        {
+            textoMunicion.text = balasEnCargador.ToString() + "/" + datosArma.capacidadCargador.ToString();
         }
     }
 }
