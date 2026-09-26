@@ -67,5 +67,5 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "rv1armas.slnx"
+    "dotnet.defaultSolution": "Rv.slnx"
 }
