@@ -12,6 +12,7 @@ public class EnemyTarget : MonoBehaviour
     private bool isDead = false;
     private Renderer[] renderers;
     private Rigidbody rb;
+    private Transform playerTransform;
 
     void Awake()
     {
@@ -26,6 +27,11 @@ public class EnemyTarget : MonoBehaviour
     {
         spawnTime = Time.time;
         initialPosition = transform.position;
+
+        if (Camera.main != null)
+        {
+            playerTransform = Camera.main.transform;
+        }
 
         if (enemyData != null)
         {
@@ -105,9 +111,19 @@ public class EnemyTarget : MonoBehaviour
         if (moveDirection != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
-            // Pequeño bamboleo de vuelo
             float tiltZ = Mathf.Sin(elapsedTime * 6f) * 8f;
             transform.rotation = targetRotation * Quaternion.Euler(0, 0, tiltZ);
+        }
+
+        // Detectar si impacta cerca del jugador / cámara
+        if (playerTransform != null && Vector3.Distance(transform.position, playerTransform.position) < 1.4f)
+        {
+            var health = playerTransform.GetComponentInParent<PlayerHealth>() ?? Object.FindAnyObjectByType<PlayerHealth>();
+            if (health != null)
+            {
+                health.TakeDamage(1);
+            }
+            OnHit();
         }
     }
 
@@ -117,7 +133,10 @@ public class EnemyTarget : MonoBehaviour
         isDead = true;
 
         int points = (enemyData != null) ? enemyData.scorePoints : 100;
-        Debug.Log($"[DuckHunt] ¡Pato abatido! ({enemyData?.enemyName}) +{points} puntos");
+        Debug.Log($"[DuckHunt] 🎯 ¡Pato abatido! ({enemyData?.enemyName}) +{points} puntos");
+
+        // Sumar puntos en el HUD
+        PlayerHUD.AddScore(points);
 
         // Activar física de caída con rotación
         if (rb != null)
@@ -137,9 +156,29 @@ public class EnemyTarget : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Bala") || other.GetComponent<Bala>() != null)
+        if (other.CompareTag("Bala") || 
+            other.GetComponent<Bala>() != null ||
+            other.name.Contains("Bala") ||
+            other.name.Contains("bala") ||
+            other.name.Contains("misil") ||
+            other.name.Contains("bullet") ||
+            other.name.Contains("Pellet"))
         {
             OnHit();
         }
+        else
+        {
+            var playerHealth = other.GetComponentInParent<PlayerHealth>();
+            if (playerHealth != null)
+            {
+                playerHealth.TakeDamage(1);
+                OnHit();
+            }
+        }
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        OnTriggerEnter(collision.collider);
     }
 }

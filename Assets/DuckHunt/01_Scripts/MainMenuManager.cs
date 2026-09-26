@@ -13,6 +13,7 @@ public class MainMenuManager : MonoBehaviour
     public void Jugar()
     {
         Debug.Log("[MainMenu] Cargando escena del juego: " + gameSceneName);
+        PlayerHUD.ResetScore();
         if (!string.IsNullOrEmpty(gameSceneName))
         {
             SceneManager.LoadScene(gameSceneName);
