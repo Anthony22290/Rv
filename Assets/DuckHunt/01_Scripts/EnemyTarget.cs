@@ -75,14 +75,17 @@ public class EnemyTarget : MonoBehaviour
         Destroy(gameObject, data.maxLifeTime);
     }
 
+    private float accumulatedTime = 0f;
+
     void Update()
     {
         if (isDead) return;
 
-        float elapsedTime = Time.time - spawnTime;
+        float speedMultiplier = (PowerUpManager.Instance != null) ? PowerUpManager.Instance.CurrentEnemySpeedMultiplier : 1.0f;
+        accumulatedTime += Time.deltaTime * speedMultiplier;
         float speed = (enemyData != null) ? enemyData.moveSpeed : 4f;
 
-        Vector3 currentPos = initialPosition + (moveDirection * (speed * elapsedTime));
+        Vector3 currentPos = initialPosition + (moveDirection * (speed * accumulatedTime));
 
         float verticalOffset = 0f;
         if (enemyData != null)
@@ -90,11 +93,11 @@ public class EnemyTarget : MonoBehaviour
             switch (enemyData.movementPattern)
             {
                 case EnemyMovementPattern.SineWave:
-                    verticalOffset = Mathf.Sin(elapsedTime * enemyData.waveFrequency) * enemyData.waveAmplitude;
+                    verticalOffset = Mathf.Sin(accumulatedTime * enemyData.waveFrequency) * enemyData.waveAmplitude;
                     break;
 
                 case EnemyMovementPattern.ArcFly:
-                    verticalOffset = Mathf.Sin((elapsedTime / enemyData.maxLifeTime) * Mathf.PI) * enemyData.waveAmplitude;
+                    verticalOffset = Mathf.Sin((accumulatedTime / enemyData.maxLifeTime) * Mathf.PI) * enemyData.waveAmplitude;
                     break;
 
                 case EnemyMovementPattern.StraightLine:
@@ -111,7 +114,7 @@ public class EnemyTarget : MonoBehaviour
         if (moveDirection != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
-            float tiltZ = Mathf.Sin(elapsedTime * 6f) * 8f;
+            float tiltZ = Mathf.Sin(accumulatedTime * 6f) * 8f;
             transform.rotation = targetRotation * Quaternion.Euler(0, 0, tiltZ);
         }
 
@@ -132,11 +135,20 @@ public class EnemyTarget : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
-        int points = (enemyData != null) ? enemyData.scorePoints : 100;
-        Debug.Log($"[DuckHunt] 🎯 ¡Pato abatido! ({enemyData?.enemyName}) +{points} puntos");
+        int multiplier = (PowerUpManager.Instance != null) ? PowerUpManager.Instance.CurrentScoreMultiplier : 1;
+        int basePoints = (enemyData != null) ? enemyData.scorePoints : 100;
+        int points = basePoints * multiplier;
+
+        Debug.Log($"[DuckHunt] 🎯 ¡Pato abatido! ({enemyData?.enemyName}) +{points} puntos {(multiplier > 1 ? "(¡DOBLE PUNTUACIÓN!)" : "")}");
 
         // Sumar puntos en el HUD
         PlayerHUD.AddScore(points);
+
+        // Intentar soltar Power-Up al jugador en su mano izquierda
+        if (PowerUpManager.Instance != null)
+        {
+            PowerUpManager.Instance.TryDropPowerUp(transform.position);
+        }
 
         // Activar física de caída con rotación
         if (rb != null)

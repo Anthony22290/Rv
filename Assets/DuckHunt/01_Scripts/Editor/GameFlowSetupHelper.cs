@@ -33,7 +33,10 @@ public static class GameFlowSetupHelper
         // 1. Configurar armas y prefabs
         WeaponSetupHelper.SetupWeapons();
 
-        // 2. Asegurar que Mapa2 esté poblado si estuviera vacío
+        // 2. Configurar Power-Ups y Scriptable Objects
+        PowerUpSetupHelper.EnsurePowerUpsConfigured();
+
+        // 3. Asegurar que Mapa2 esté poblado si estuviera vacío
         if (!File.Exists(PATH_MAPA2) || new FileInfo(PATH_MAPA2).Length < 50000)
         {
             if (File.Exists(PATH_BASIC_SCENE))

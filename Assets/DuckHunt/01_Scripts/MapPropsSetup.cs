@@ -21,8 +21,24 @@ public class MapPropsSetup : MonoBehaviour
     void Awake()
     {
         AsegurarPlayerHUD();
+        AsegurarPowerUps();
         AsegurarMesasDeArmas();
         AsegurarLineaDeMeta();
+    }
+
+    public void AsegurarPowerUps()
+    {
+        if (Object.FindAnyObjectByType<PowerUpManager>() == null)
+        {
+            GameObject mgrObj = new GameObject("[PowerUpManager]");
+            mgrObj.AddComponent<PowerUpManager>();
+        }
+
+        if (Object.FindAnyObjectByType<LeftHandPowerUpController>() == null)
+        {
+            GameObject leftSocket = new GameObject("LeftHand_PowerUp_Socket");
+            leftSocket.AddComponent<LeftHandPowerUpController>();
+        }
     }
 
     public void AsegurarPlayerHUD()

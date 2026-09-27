@@ -75,11 +75,19 @@ public class PlayerHealth : MonoBehaviour
     }
 
     /// <summary>
-    /// Aplica daño al jugador. Si la vida llega a 0, activa la muerte y regresa al menú.
+    /// Aplica daño al jugador. Si tiene un escudo activo, lo consume y bloquea el daño.
+    /// Si la vida llega a 0, activa la muerte y regresa al menú.
     /// </summary>
     public void TakeDamage(int damage = 1)
     {
         if (isDead || isInvulnerable) return;
+
+        // Si el jugador tiene un Escudo activo, absorbe el daño por completo
+        if (PowerUpManager.Instance != null && PowerUpManager.Instance.IntentarConsumirEscudo())
+        {
+            StartCoroutine(ShieldBlockFeedbackRoutine());
+            return;
+        }
 
         currentHealth = Mathf.Max(0, currentHealth - damage);
         Debug.Log($"[PlayerHealth] ¡Jugador herido! Vida restante: {currentHealth}/{maxHealth}");
@@ -95,6 +103,31 @@ public class PlayerHealth : MonoBehaviour
         {
             Die();
         }
+    }
+
+    private IEnumerator ShieldBlockFeedbackRoutine()
+    {
+        isInvulnerable = true;
+
+        if (damageOverlay != null)
+        {
+            damageOverlay.color = new Color(0.1f, 0.75f, 1.0f, 0.5f); // Destello azul/cian de escudo
+            float elapsed = 0f;
+            float duration = 0.45f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float alpha = Mathf.Lerp(0.5f, 0f, elapsed / duration);
+                damageOverlay.color = new Color(0.1f, 0.75f, 1.0f, alpha);
+                yield return null;
+            }
+
+            damageOverlay.color = new Color(0.1f, 0.75f, 1.0f, 0f);
+        }
+
+        yield return new WaitForSeconds(0.4f);
+        isInvulnerable = false;
     }
 
     private IEnumerator DamageFeedbackRoutine()

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a00c7bed2f99f1d478cee2c3cb3f30c3, type: 3}
+  m_Name: PowerUp_Escudo
+  m_EditorClassIdentifier: Assembly-CSharp::PowerUpDataSO
+  powerUpName: Escudo Defensivo
+  powerUpType: 0
+  iconEmoji: "\U0001F6E1\uFE0F"
+  description: "Crea una barrera de energ\xEDa que absorbe el siguiente impacto recibido."
+  duration: 0
+  scoreMultiplier: 1
+  slowSpeedFactor: 1
+  themeColor: {r: 0.15, g: 0.75, b: 1, a: 1}
+  emissionColor: {r: 0, g: 0.4, b: 0.9, a: 1}
+  customActivationSound: {fileID: 0}

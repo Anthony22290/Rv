@@ -201,4 +201,165 @@ public static class SonidosArmas
         clip.SetData(samples, 0);
         return clip;
     }
+
+    private static AudioClip _sonidoPowerUpSpawn;
+    private static AudioClip _sonidoPowerUpActivar;
+    private static AudioClip _sonidoEscudoBloqueo;
+    private static AudioClip _sonidoSlowMotion;
+    private static AudioClip _sonidoDoblePuntos;
+
+    public static AudioClip SonidoPowerUpSpawn
+    {
+        get
+        {
+            if (_sonidoPowerUpSpawn == null) _sonidoPowerUpSpawn = GenerarSonidoPowerUpSpawn();
+            return _sonidoPowerUpSpawn;
+        }
+    }
+
+    public static AudioClip SonidoPowerUpActivar
+    {
+        get
+        {
+            if (_sonidoPowerUpActivar == null) _sonidoPowerUpActivar = GenerarSonidoPowerUpActivar();
+            return _sonidoPowerUpActivar;
+        }
+    }
+
+    public static AudioClip SonidoEscudoBloqueo
+    {
+        get
+        {
+            if (_sonidoEscudoBloqueo == null) _sonidoEscudoBloqueo = GenerarSonidoEscudoBloqueo();
+            return _sonidoEscudoBloqueo;
+        }
+    }
+
+    public static AudioClip SonidoSlowMotion
+    {
+        get
+        {
+            if (_sonidoSlowMotion == null) _sonidoSlowMotion = GenerarSonidoSlowMotion();
+            return _sonidoSlowMotion;
+        }
+    }
+
+    public static AudioClip SonidoDoblePuntos
+    {
+        get
+        {
+            if (_sonidoDoblePuntos == null) _sonidoDoblePuntos = GenerarSonidoDoblePuntos();
+            return _sonidoDoblePuntos;
+        }
+    }
+
+    private static AudioClip GenerarSonidoPowerUpSpawn()
+    {
+        int sampleRate = 44100;
+        float duration = 0.5f;
+        int sampleCount = Mathf.FloorToInt(sampleRate * duration);
+        float[] samples = new float[sampleCount];
+        float[] notes = new float[] { 587.33f, 739.99f, 880.00f }; // D5, F#5, A5
+        float noteDur = duration / notes.Length;
+
+        for (int i = 0; i < sampleCount; i++)
+        {
+            float t = (float)i / sampleRate;
+            int idx = Mathf.Min((int)(t / noteDur), notes.Length - 1);
+            float noteT = t - (idx * noteDur);
+            float freq = notes[idx];
+            float env = Mathf.Exp(-noteT * 10f) * Mathf.Min(1f, noteT * 50f);
+            float tone = Mathf.Sin(2f * Mathf.PI * freq * t) * 0.7f + Mathf.Sin(4f * Mathf.PI * freq * t) * 0.3f;
+            samples[i] = tone * env * 0.45f;
+        }
+
+        AudioClip clip = AudioClip.Create("ProceduralPowerUpSpawn", sampleCount, 1, sampleRate, false);
+        clip.SetData(samples, 0);
+        return clip;
+    }
+
+    private static AudioClip GenerarSonidoPowerUpActivar()
+    {
+        int sampleRate = 44100;
+        float duration = 0.6f;
+        int sampleCount = Mathf.FloorToInt(sampleRate * duration);
+        float[] samples = new float[sampleCount];
+
+        for (int i = 0; i < sampleCount; i++)
+        {
+            float t = (float)i / sampleRate;
+            float freq = Mathf.Lerp(400f, 1200f, t / duration);
+            float env = Mathf.Sin((t / duration) * Mathf.PI);
+            float tone = Mathf.Sin(2f * Mathf.PI * freq * t) * 0.6f + Mathf.Sin(4f * Mathf.PI * freq * t) * 0.3f;
+            samples[i] = tone * env * 0.5f;
+        }
+
+        AudioClip clip = AudioClip.Create("ProceduralPowerUpActivate", sampleCount, 1, sampleRate, false);
+        clip.SetData(samples, 0);
+        return clip;
+    }
+
+    private static AudioClip GenerarSonidoEscudoBloqueo()
+    {
+        int sampleRate = 44100;
+        float duration = 0.65f;
+        int sampleCount = Mathf.FloorToInt(sampleRate * duration);
+        float[] samples = new float[sampleCount];
+
+        for (int i = 0; i < sampleCount; i++)
+        {
+            float t = (float)i / sampleRate;
+            float env = Mathf.Exp(-t * 6f);
+            float ring = Mathf.Sin(2f * Mathf.PI * 650f * t) * 0.5f + Mathf.Sin(2f * Mathf.PI * 1300f * t) * 0.3f;
+            float noise = (Random.value * 2f - 1f) * Mathf.Exp(-t * 25f) * 0.4f;
+            samples[i] = (ring + noise) * env * 0.6f;
+        }
+
+        AudioClip clip = AudioClip.Create("ProceduralShieldBlock", sampleCount, 1, sampleRate, false);
+        clip.SetData(samples, 0);
+        return clip;
+    }
+
+    private static AudioClip GenerarSonidoSlowMotion()
+    {
+        int sampleRate = 44100;
+        float duration = 0.8f;
+        int sampleCount = Mathf.FloorToInt(sampleRate * duration);
+        float[] samples = new float[sampleCount];
+
+        for (int i = 0; i < sampleCount; i++)
+        {
+            float t = (float)i / sampleRate;
+            float freq = Mathf.Lerp(600f, 120f, t / duration);
+            float env = Mathf.Sin((t / duration) * Mathf.PI) * Mathf.Exp(-t * 2f);
+            float tone = Mathf.Sin(2f * Mathf.PI * freq * t) * 0.8f;
+            samples[i] = tone * env * 0.6f;
+        }
+
+        AudioClip clip = AudioClip.Create("ProceduralSlowMotion", sampleCount, 1, sampleRate, false);
+        clip.SetData(samples, 0);
+        return clip;
+    }
+
+    private static AudioClip GenerarSonidoDoblePuntos()
+    {
+        int sampleRate = 44100;
+        float duration = 0.55f;
+        int sampleCount = Mathf.FloorToInt(sampleRate * duration);
+        float[] samples = new float[sampleCount];
+
+        for (int i = 0; i < sampleCount; i++)
+        {
+            float t = (float)i / sampleRate;
+            float env1 = Mathf.Exp(-t * 15f);
+            float env2 = (t > 0.15f) ? Mathf.Exp(-(t - 0.15f) * 15f) : 0f;
+            float chime1 = Mathf.Sin(2f * Mathf.PI * 987.77f * t) * env1;
+            float chime2 = Mathf.Sin(2f * Mathf.PI * 1318.51f * t) * env2;
+            samples[i] = (chime1 + chime2) * 0.5f;
+        }
+
+        AudioClip clip = AudioClip.Create("ProceduralDoublePoints", sampleCount, 1, sampleRate, false);
+        clip.SetData(samples, 0);
+        return clip;
+    }
 }

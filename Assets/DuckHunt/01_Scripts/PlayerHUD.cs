@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine.UI;
 
 /// <summary>
-/// Interfaz de Usuario (HUD en Realidad Virtual) para mostrar los Puntos y la Vida del jugador.
+/// Interfaz de Usuario (HUD en Realidad Virtual) para mostrar los Puntos, la Vida del jugador y los Power-Ups activos.
 /// Permanece cómodamente visible en el campo de visión del jugador con auto-generación de interfaz.
 /// </summary>
 public class PlayerHUD : MonoBehaviour
@@ -17,6 +17,9 @@ public class PlayerHUD : MonoBehaviour
 
     [Tooltip("Texto para mostrar la vida / corazones")]
     public TextMeshProUGUI healthText;
+
+    [Tooltip("Texto para mostrar el estado de los Power-Ups activos")]
+    public TextMeshProUGUI powerUpStatusText;
 
     [Header("Configuración de Posición en VR")]
     [Tooltip("Distancia desde la cámara")]
@@ -34,6 +37,7 @@ public class PlayerHUD : MonoBehaviour
     private Camera targetCamera;
     private int displayedScore = 0;
     private Coroutine scoreAnimCoroutine;
+    private Coroutine notificationCoroutine;
 
     void Awake()
     {
@@ -45,7 +49,7 @@ public class PlayerHUD : MonoBehaviour
             if (mover != null) targetCamera = mover.GetComponentInChildren<Camera>();
         }
 
-        if (scoreText == null || healthText == null)
+        if (scoreText == null || healthText == null || powerUpStatusText == null)
         {
             CrearHUDUIAutomatico();
         }
@@ -78,6 +82,13 @@ public class PlayerHUD : MonoBehaviour
         {
             UpdateHealth(3, 3);
         }
+
+        ActualizarEstadoPowerUps();
+    }
+
+    void Update()
+    {
+        ActualizarEstadoPowerUps();
     }
 
     void LateUpdate()
@@ -203,6 +214,51 @@ public class PlayerHUD : MonoBehaviour
         }
     }
 
+    public void ActualizarEstadoPowerUps()
+    {
+        if (powerUpStatusText == null) return;
+        if (PowerUpManager.Instance == null)
+        {
+            powerUpStatusText.text = "";
+            return;
+        }
+
+        string status = "";
+
+        if (PowerUpManager.Instance.HasShield)
+        {
+            status += "<color=#00E5FF>🛡️ ESCUDO ACTIVO</color>  ";
+        }
+
+        if (PowerUpManager.Instance.IsSlowMotionActive)
+        {
+            status += $"<color=#D580FF>⏱️ LENTO: {PowerUpManager.Instance.SlowMotionTimeRemaining:F1}s</color>  ";
+        }
+
+        if (PowerUpManager.Instance.IsDoubleScoreActive)
+        {
+            status += $"<color=#FFD700>⭐ 2X PUNTOS: {PowerUpManager.Instance.DoubleScoreTimeRemaining:F1}s</color>  ";
+        }
+
+        powerUpStatusText.text = status;
+    }
+
+    public void MostrarNotificacionPowerUp(PowerUpDataSO data)
+    {
+        if (notificationCoroutine != null) StopCoroutine(notificationCoroutine);
+        notificationCoroutine = StartCoroutine(NotificacionPowerUpRutina(data));
+    }
+
+    private IEnumerator NotificacionPowerUpRutina(PowerUpDataSO data)
+    {
+        if (powerUpStatusText != null && data != null)
+        {
+            powerUpStatusText.text = $"<size=120%>{data.iconEmoji} ¡{data.powerUpName.ToUpper()} ACTIVADO!</size>";
+            yield return new WaitForSeconds(1.5f);
+        }
+        ActualizarEstadoPowerUps();
+    }
+
     private void CrearHUDUIAutomatico()
     {
         Canvas canvas = GetComponent<Canvas>();
@@ -223,7 +279,7 @@ public class PlayerHUD : MonoBehaviour
         RectTransform rt = GetComponent<RectTransform>();
         if (rt != null)
         {
-            rt.sizeDelta = new Vector2(700f, 130f);
+            rt.sizeDelta = new Vector2(760f, 180f);
             transform.localScale = Vector3.one * 0.0016f;
         }
 
@@ -236,40 +292,55 @@ public class PlayerHUD : MonoBehaviour
         panelRT.sizeDelta = Vector2.zero;
 
         Image panelImg = panelObj.AddComponent<Image>();
-        panelImg.color = new Color(0.06f, 0.06f, 0.06f, 0.85f);
+        panelImg.color = new Color(0.06f, 0.06f, 0.06f, 0.88f);
 
         Outline outline = panelObj.AddComponent<Outline>();
         outline.effectColor = new Color(0.9f, 0.75f, 0.2f, 0.8f);
         outline.effectDistance = new Vector2(2.5f, -2.5f);
 
-        // Texto de Puntos (Izquierda)
+        // Texto de Puntos (Arriba Izquierda)
         GameObject scoreObj = new GameObject("Score_Text");
         scoreObj.transform.SetParent(panelObj.transform, false);
         RectTransform scoreRT = scoreObj.AddComponent<RectTransform>();
-        scoreRT.anchorMin = new Vector2(0.04f, 0.1f);
-        scoreRT.anchorMax = new Vector2(0.52f, 0.9f);
+        scoreRT.anchorMin = new Vector2(0.04f, 0.45f);
+        scoreRT.anchorMax = new Vector2(0.50f, 0.95f);
         scoreRT.sizeDelta = Vector2.zero;
 
         scoreText = scoreObj.AddComponent<TextMeshProUGUI>();
         scoreText.text = $"🎯 PUNTOS: <color=#FFD700>{totalScore:N0}</color>";
-        scoreText.fontSize = 34;
+        scoreText.fontSize = 32;
         scoreText.fontStyle = FontStyles.Bold;
         scoreText.alignment = TextAlignmentOptions.MidlineLeft;
         scoreText.color = Color.white;
 
-        // Texto de Vida (Derecha)
+        // Texto de Vida (Arriba Derecha)
         GameObject healthObj = new GameObject("Health_Text");
         healthObj.transform.SetParent(panelObj.transform, false);
         RectTransform healthRT = healthObj.AddComponent<RectTransform>();
-        healthRT.anchorMin = new Vector2(0.52f, 0.1f);
-        healthRT.anchorMax = new Vector2(0.96f, 0.9f);
+        healthRT.anchorMin = new Vector2(0.50f, 0.45f);
+        healthRT.anchorMax = new Vector2(0.96f, 0.95f);
         healthRT.sizeDelta = Vector2.zero;
 
         healthText = healthObj.AddComponent<TextMeshProUGUI>();
         healthText.text = "VIDA: <color=#FF3B30>❤️</color> <color=#FF3B30>❤️</color> <color=#FF3B30>❤️</color> (3/3)";
-        healthText.fontSize = 28;
+        healthText.fontSize = 26;
         healthText.fontStyle = FontStyles.Bold;
         healthText.alignment = TextAlignmentOptions.MidlineRight;
         healthText.color = Color.white;
+
+        // Texto de Power-Ups Activos (Abajo Centrado)
+        GameObject powerUpObj = new GameObject("PowerUp_Status_Text");
+        powerUpObj.transform.SetParent(panelObj.transform, false);
+        RectTransform powerUpRT = powerUpObj.AddComponent<RectTransform>();
+        powerUpRT.anchorMin = new Vector2(0.04f, 0.05f);
+        powerUpRT.anchorMax = new Vector2(0.96f, 0.45f);
+        powerUpRT.sizeDelta = Vector2.zero;
+
+        powerUpStatusText = powerUpObj.AddComponent<TextMeshProUGUI>();
+        powerUpStatusText.text = "";
+        powerUpStatusText.fontSize = 24;
+        powerUpStatusText.fontStyle = FontStyles.Bold;
+        powerUpStatusText.alignment = TextAlignmentOptions.Center;
+        powerUpStatusText.color = new Color(0.3f, 0.9f, 1.0f);
     }
 }
