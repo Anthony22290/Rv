@@ -8,26 +8,20 @@ using System.Collections;
 [RequireComponent(typeof(XRGrabInteractable))]
 public class PistolaVR : MonoBehaviour
 {
-    [Header("Datos del Arma (Scriptable Object)")]
+    [Header("Datos del Arma")]
     public ArmaDataSO datosArma;
 
     [Header("Puntos de Referencia")]
-    [Tooltip("Punta del cañón de la pistola desde donde sale la bala y el láser")]
     public Transform puntoDeDisparo;
-    
-    [Tooltip("Texto flotante donde se muestra la munición")]
     public TextMeshPro textoMunicion;
-
-    [Tooltip("Prefab del proyectil / bala")]
     public GameObject balaPrefab;
 
-    [Header("Puntero Láser de Apuntado")]
-    [Tooltip("Muestra una línea láser roja hacia donde apunta la pistola")]
+    [Header("Puntero Laser")]
     public bool usarLaserApuntado = true;
     public float distanciaLaser = 35f;
     public Color colorLaser = new Color(1f, 0.1f, 0.1f, 0.8f);
 
-    [Header("Feedback Háptico (Vibración Oculus)")]
+    [Header("Feedback Haptico")]
     public float duracionVibracion = 0.1f;
     public float intensidadVibracion = 0.7f;
 
@@ -35,19 +29,21 @@ public class PistolaVR : MonoBehaviour
     public AudioClip sonidoDisparo;
     private AudioSource audioSource;
 
+    [Header("UI de Recarga")]
+    public Sprite reloadSprite;
+    private GameObject reloadIconObj;
+
     private XRGrabInteractable interactable;
     private LineRenderer laserLine;
 
-    // Control de disparo y recarga
     private float tiempoUltimoDisparo;
     private int balasEnCargador;
     private bool estaRecargando;
 
-    // Detección de agitación (Shake to reload)
     private Vector3 ultimaPosicion;
     private float tiempoAgitacion;
     private int contadorAgitacion;
-    public float umbralAgitacion = 0.05f;
+    public float umbralAgitacion = 0.015f;
 
     void Awake()
     {
@@ -61,20 +57,36 @@ public class PistolaVR : MonoBehaviour
 
         interactable.activated.AddListener(Disparar);
 
-        // Crear y configurar el puntero láser visual
-        if (usarLaserApuntado)
-        {
-            ConfigurarLaser();
-        }
+        if (usarLaserApuntado) ConfigurarLaser();
 
-        // Inicializar munición
-        if (datosArma != null)
-        {
-            balasEnCargador = datosArma.capacidadCargador;
-        }
+        if (datosArma != null) balasEnCargador = datosArma.capacidadCargador;
         
         ActualizarTextoMunicion();
         ultimaPosicion = transform.position;
+
+        if (textoMunicion != null)
+        {
+            reloadIconObj = new GameObject("ReloadIcon");
+            reloadIconObj.transform.SetParent(textoMunicion.transform.parent);
+            reloadIconObj.transform.localPosition = textoMunicion.transform.localPosition + new Vector3(0, 0.05f, 0);
+            reloadIconObj.transform.localRotation = textoMunicion.transform.localRotation;
+            
+            float scaleInvert = 1f / transform.localScale.x;
+            reloadIconObj.transform.localScale = new Vector3(scaleInvert * 0.05f, scaleInvert * 0.05f, scaleInvert * 0.05f);
+
+            SpriteRenderer sr = reloadIconObj.AddComponent<SpriteRenderer>();
+            
+#if UNITY_EDITOR
+            if (reloadSprite == null)
+            {
+                reloadSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/DuckHunt/02_Sprites/reload.png");
+            }
+#endif
+            if (reloadSprite != null) sr.sprite = reloadSprite;
+            else Debug.LogError("PistolaVR: No se pudo cargar reloadSprite. Verifica que la ruta Assets/DuckHunt/02_Sprites/reload.png sea correcta.");
+            
+            reloadIconObj.SetActive(false);
+        }
     }
 
     void OnDestroy()
@@ -109,7 +121,6 @@ public class PistolaVR : MonoBehaviour
 
         if (laserLine != null && puntoDeDisparo != null)
         {
-            // Solo mostrar el láser si la pistola está siendo sostenida
             laserLine.enabled = estaAgarrada;
 
             if (estaAgarrada)
@@ -118,7 +129,6 @@ public class PistolaVR : MonoBehaviour
                 Vector3 direction = puntoDeDisparo.forward;
                 Vector3 targetPoint = origin + (direction * distanciaLaser);
 
-                // Si choca con un enemigo u obstáculo, cortar el láser ahí
                 if (Physics.Raycast(origin, direction, out RaycastHit hit, distanciaLaser))
                 {
                     targetPoint = hit.point;
@@ -129,25 +139,21 @@ public class PistolaVR : MonoBehaviour
             }
         }
 
-        // Lógica de Agitar para Recargar
         if (estaAgarrada && !estaRecargando)
         {
-            float deltaMovimiento = Vector3.Distance(transform.position, ultimaPosicion);
-            // Reducido significativamente para que detecte mejor en cada frame
-            if (deltaMovimiento > 0.005f) 
+            float deltaY = Mathf.Abs(transform.position.y - ultimaPosicion.y);
+            if (deltaY > 0.008f)
             {
                 contadorAgitacion++;
                 tiempoAgitacion = Time.time;
             }
 
-            // Si no se ha movido mucho en 0.5s, reiniciar contador
             if (Time.time - tiempoAgitacion > 0.4f)
             {
                 contadorAgitacion = 0;
             }
 
-            // Reducido a 4 movimientos bruscos para que sea más fácil
-            if (contadorAgitacion > 4)
+            if (contadorAgitacion > 3)
             {
                 if (datosArma != null && balasEnCargador < datosArma.capacidadCargador)
                 {
@@ -155,6 +161,11 @@ public class PistolaVR : MonoBehaviour
                 }
                 contadorAgitacion = 0;
             }
+        }
+        
+        if (estaRecargando && reloadIconObj != null)
+        {
+            reloadIconObj.transform.Rotate(0, 0, -360f * Time.deltaTime);
         }
         
         ultimaPosicion = transform.position;
@@ -166,17 +177,8 @@ public class PistolaVR : MonoBehaviour
 
         if (datosArma != null)
         {
-            if (Time.time - tiempoUltimoDisparo < datosArma.tiempoDisparo)
-            {
-                return; // Cadencia de tiro (aún no puede disparar)
-            }
-
-            if (balasEnCargador <= 0)
-            {
-                // No dispara si no hay balas. Ahora la recarga es agitando.
-                // Podríamos emitir un sonido de "clic" de cargador vacío aquí
-                return;
-            }
+            if (Time.time - tiempoUltimoDisparo < datosArma.tiempoDisparo) return;
+            if (balasEnCargador <= 0) return;
 
             balasEnCargador--;
             ActualizarTextoMunicion();
@@ -185,27 +187,21 @@ public class PistolaVR : MonoBehaviour
 
         Transform originTransform = (puntoDeDisparo != null) ? puntoDeDisparo : transform;
 
-        // 1. Instanciar la bala en la posición y orientación exacta del cañón
         if (balaPrefab != null)
         {
             GameObject nuevaBala = Instantiate(balaPrefab, originTransform.position, originTransform.rotation);
             if (datosArma != null)
             {
                 Bala scriptBala = nuevaBala.GetComponent<Bala>();
-                if (scriptBala != null)
-                {
-                    scriptBala.velocidad = datosArma.velocidadBala;
-                }
+                if (scriptBala != null) scriptBala.velocidad = datosArma.velocidadBala;
             }
         }
 
-        // 2. Feedback Sonoro
         if (sonidoDisparo != null && audioSource != null)
         {
             audioSource.PlayOneShot(sonidoDisparo);
         }
 
-        // 3. Feedback Háptico en el mando de Oculus Quest
         if (arg.interactorObject is XRBaseInputInteractor inputInteractor)
         {
             inputInteractor.SendHapticImpulse(intensidadVibracion, duracionVibracion);
@@ -215,9 +211,9 @@ public class PistolaVR : MonoBehaviour
     IEnumerator RutinaRecarga()
     {
         estaRecargando = true;
-        if (textoMunicion != null) textoMunicion.text = "R";
+        if (textoMunicion != null) textoMunicion.text = "";
+        if (reloadIconObj != null) reloadIconObj.SetActive(true);
         
-        // Se puede añadir sonido de recarga aquí
         yield return new WaitForSeconds(datosArma != null ? datosArma.tiempoRecarga : 1.5f);
         
         if (datosArma != null)
@@ -225,6 +221,8 @@ public class PistolaVR : MonoBehaviour
             balasEnCargador = datosArma.capacidadCargador;
             ActualizarTextoMunicion();
         }
+        
+        if (reloadIconObj != null) reloadIconObj.SetActive(false);
         estaRecargando = false;
     }
 
@@ -236,3 +234,5 @@ public class PistolaVR : MonoBehaviour
         }
     }
 }
+ 
+

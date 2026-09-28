@@ -2,25 +2,18 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
-/// <summary>
-/// Gestiona la vida del jugador, daño recibido y reinicio/retorno al Menú Principal al morir.
-/// </summary>
 public class PlayerHealth : MonoBehaviour
 {
-    [Header("Configuración de Vida")]
-    [Tooltip("Vida máxima del jugador")]
+    [Header("Configuracion de Vida")]
     public int maxHealth = 3;
-
-    [Tooltip("Vida actual")]
     public int currentHealth;
 
     [Header("Escenas")]
-    [Tooltip("Nombre de la escena a cargar al morir (Menú Principal)")]
     public string menuSceneName = "MainMenu";
 
     [Header("Feedback Visual")]
-    [Tooltip("Tiempo de invulnerabilidad tras recibir daño")]
     public float invulnerabilityDuration = 1.0f;
 
     private bool isDead = false;
@@ -43,15 +36,14 @@ public class PlayerHealth : MonoBehaviour
         {
             GameObject canvasObj = new GameObject("DamageEffect_Canvas");
             canvasObj.transform.SetParent(cam.transform, false);
-            canvasObj.transform.localPosition = new Vector3(0, 0, 0.35f);
+            canvasObj.transform.localPosition = new Vector3(0, 0, 0.15f);
             canvasObj.transform.localRotation = Quaternion.identity;
 
             damageCanvas = canvasObj.AddComponent<Canvas>();
             damageCanvas.renderMode = RenderMode.WorldSpace;
-            damageCanvas.worldCamera = cam;
-
+            
             RectTransform rect = canvasObj.GetComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(1f, 1f);
+            rect.sizeDelta = new Vector2(2f, 2f);
 
             GameObject imgObj = new GameObject("DamageFlash");
             imgObj.transform.SetParent(canvasObj.transform, false);
@@ -61,7 +53,7 @@ public class PlayerHealth : MonoBehaviour
             imgRect.sizeDelta = Vector2.zero;
 
             damageOverlay = imgObj.AddComponent<Image>();
-            damageOverlay.color = new Color(0.85f, 0.05f, 0.05f, 0f);
+            damageOverlay.color = new Color(1f, 0f, 0f, 0f);
             damageOverlay.raycastTarget = false;
         }
     }
@@ -74,15 +66,11 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Aplica daño al jugador. Si la vida llega a 0, activa la muerte y regresa al menú.
-    /// </summary>
     public void TakeDamage(int damage = 1)
     {
         if (isDead || isInvulnerable) return;
 
         currentHealth = Mathf.Max(0, currentHealth - damage);
-        Debug.Log($"[PlayerHealth] ¡Jugador herido! Vida restante: {currentHealth}/{maxHealth}");
 
         if (PlayerHUD.Instance != null)
         {
@@ -122,15 +110,10 @@ public class PlayerHealth : MonoBehaviour
         isInvulnerable = false;
     }
 
-    /// <summary>
-    /// Gestiona la muerte del jugador y carga la escena del menú principal.
-    /// </summary>
     public void Die()
     {
         if (isDead) return;
         isDead = true;
-
-        Debug.Log("[PlayerHealth] ¡Jugador ha muerto! Volviendo al Menú Principal...");
 
         var mover = GetComponent<VRAutoForwardMover>();
         if (mover != null) mover.avanzar = false;
@@ -142,19 +125,74 @@ public class PlayerHealth : MonoBehaviour
     {
         if (damageOverlay != null)
         {
-            damageOverlay.color = new Color(0.6f, 0.0f, 0.0f, 0.75f);
+            damageOverlay.color = new Color(0.8f, 0.0f, 0.0f, 0.85f);
         }
 
-        yield return new WaitForSeconds(1.2f);
+        Camera cam = Camera.main;
+        if (cam != null)
+        {
+            Vector3 centerPos = cam.transform.position + cam.transform.forward * 3f;
+            Quaternion rotation = Quaternion.LookRotation(cam.transform.forward);
 
-        if (!string.IsNullOrEmpty(menuSceneName))
-        {
-            SceneManager.LoadScene(menuSceneName);
+            // Titulo Principal
+            GameObject titleObj = new GameObject("GameOverTitle");
+            titleObj.transform.position = centerPos + Vector3.up * 0.8f;
+            titleObj.transform.rotation = rotation;
+            var tmpTitle = titleObj.AddComponent<TMPro.TextMeshPro>();
+            tmpTitle.text = "HAS PERDIDO\n<size=35%><color=white>Apunta y haz clic (o dispara) para elegir</color></size>";
+            tmpTitle.fontSize = 7f;
+            tmpTitle.alignment = TMPro.TextAlignmentOptions.Center;
+            tmpTitle.color = Color.red;
+
+            // Boton Volver a Jugar
+            CrearBotonVR("VOLVER A JUGAR", centerPos + Vector3.up * 0.1f, rotation, true);
+
+            // Boton Menu
+            CrearBotonVR("IR AL MENU", centerPos - Vector3.up * 0.5f, rotation, false);
         }
-        else
+
+        yield return null;
+    }
+
+    private void CrearBotonVR(string texto, Vector3 pos, Quaternion rot, bool esReinicio)
+    {
+        GameObject btnObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        btnObj.name = texto;
+        btnObj.transform.position = pos;
+        btnObj.transform.rotation = rot;
+        btnObj.transform.localScale = new Vector3(2.5f, 0.45f, 0.1f);
+        
+        btnObj.GetComponent<Renderer>().material.color = new Color(0.15f, 0.15f, 0.15f, 0.9f);
+        
+        var collider = btnObj.GetComponent<BoxCollider>();
+        collider.isTrigger = false; // Interactable needs a solid collider usually, or trigger works for Ray
+        
+        // Hacerlo clickeable con el rayo VR
+        var interactable = btnObj.AddComponent<XRSimpleInteractable>();
+        interactable.selectEntered.AddListener((args) => 
         {
-            SceneManager.LoadScene(0);
-        }
+            if (esReinicio) SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            else SceneManager.LoadScene(!string.IsNullOrEmpty(menuSceneName) ? menuSceneName : "MainMenu");
+        });
+
+        // Hacerlo disparable
+        var action = btnObj.AddComponent<GameOverAction>();
+        action.isRestart = esReinicio;
+        action.menuSceneName = menuSceneName;
+
+        GameObject textObj = new GameObject("Texto");
+        textObj.transform.SetParent(btnObj.transform);
+        textObj.transform.localPosition = new Vector3(0, 0, -0.6f);
+        textObj.transform.localRotation = Quaternion.identity;
+        
+        var tmp = textObj.AddComponent<TMPro.TextMeshPro>();
+        tmp.text = texto;
+        tmp.fontSize = 2f;
+        tmp.alignment = TMPro.TextAlignmentOptions.Center;
+        tmp.color = Color.white;
+        
+        // Ajustar escala visual
+        textObj.transform.localScale = new Vector3(1f/2.5f, 1f/0.45f, 1f/0.1f);
     }
 
     void OnTriggerEnter(Collider other)
@@ -165,8 +203,9 @@ public class PlayerHealth : MonoBehaviour
             var enemy = other.GetComponent<EnemyTarget>();
             if (enemy != null)
             {
-                enemy.OnHit();
+                enemy.OnHit(false);
             }
         }
     }
 }
+ 

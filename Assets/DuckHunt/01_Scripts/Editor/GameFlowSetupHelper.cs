@@ -28,10 +28,11 @@ public static class GameFlowSetupHelper
     [MenuItem("DuckHunt/Configurar y Validar Flujo Completo del Juego")]
     public static void EnsureFullGameFlowConfigured()
     {
+        if (EditorApplication.isPlayingOrWillChangePlaymode) return;
         Debug.Log("[GameFlowSetupHelper] 🚀 Iniciando configuración completa del flujo de juego...");
 
         // 1. Configurar armas y prefabs
-        WeaponSetupHelper.SetupWeapons();
+        // WeaponSetupHelper.SetupWeapons();
 
         // 2. Asegurar que Mapa2 esté poblado si estuviera vacío
         if (!File.Exists(PATH_MAPA2) || new FileInfo(PATH_MAPA2).Length < 50000)
@@ -140,3 +141,6 @@ public static class GameFlowSetupHelper
         EditorSceneManager.SaveScene(scene);
     }
 }
+
+
+

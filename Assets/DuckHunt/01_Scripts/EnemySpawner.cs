@@ -99,15 +99,12 @@ public class EnemySpawner : MonoBehaviour
             return null;
         }
 
-        // Obtener posici贸n de referencia del jugador
         Vector3 playerPos = (playerTransform != null) ? playerTransform.position : transform.position;
 
-        // Calcular punto de aparici贸n por delante del jugador en el eje del camino
         float distanceAhead = Random.Range(spawnDistanceAheadMin, spawnDistanceAheadMax);
         float spawnZ = playerPos.z + distanceAhead;
         float spawnY = playerPos.y + Random.Range(minSpawnHeight, maxSpawnHeight);
 
-        // Decidir si aparece a la izquierda o a la derecha
         bool spawnOnLeft = Random.value > 0.5f;
         float spawnX = spawnOnLeft
             ? (playerPos.x - spawnSideDistance)
@@ -115,13 +112,27 @@ public class EnemySpawner : MonoBehaviour
 
         Vector3 spawnPosition = new Vector3(spawnX, spawnY, spawnZ);
 
-        // Direcci贸n de vuelo: cruzar hacia el lado opuesto
-        Vector3 flightDirection = spawnOnLeft ? Vector3.right : Vector3.left;
+        EnemyDataSO selectedData = null;
+        if (enemyTypes != null && enemyTypes.Length > 0)
+        {
+            selectedData = enemyTypes[Random.Range(0, enemyTypes.Length)];
+        }
 
-        // A帽adir una ligera variaci贸n en profundidad (Z) y altura (Y) para vuelos m谩s naturales
-        flightDirection.z = Random.Range(-0.25f, 0.25f);
-        flightDirection.y = Random.Range(-0.1f, 0.25f);
-        flightDirection.Normalize();
+        Vector3 flightDirection;
+        bool shouldAttack = (selectedData != null && selectedData.isAggressive) || (Random.value > 0.6f); // 40% de patos atacan autom醫icamente
+        if (shouldAttack)
+        {
+            Vector3 targetHead = playerPos;
+            targetHead.y += 1.6f;
+            flightDirection = (targetHead - spawnPosition).normalized;
+        }
+        else
+        {
+            flightDirection = spawnOnLeft ? Vector3.right : Vector3.left;
+            flightDirection.z = Random.Range(-0.25f, 0.25f);
+            flightDirection.y = Random.Range(-0.1f, 0.25f);
+            flightDirection.Normalize();
+        }
 
         GameObject newEnemy = Instantiate(enemyBasePrefab, spawnPosition, Quaternion.identity);
 
@@ -131,20 +142,11 @@ public class EnemySpawner : MonoBehaviour
             targetComp = newEnemy.AddComponent<EnemyTarget>();
         }
 
-        // Asignar Scriptable Object aleatorio
-        if (enemyTypes != null && enemyTypes.Length > 0)
-        {
-            EnemyDataSO selectedData = enemyTypes[Random.Range(0, enemyTypes.Length)];
-            targetComp.Setup(selectedData, flightDirection);
-        }
-        else
-        {
-            targetComp.Setup(null, flightDirection);
-        }
+        targetComp.Setup(selectedData, flightDirection);
+        targetComp.isDynamicallyAggressive = shouldAttack;
 
         return newEnemy;
     }
-
     void OnDrawGizmosSelected()
     {
         Vector3 playerPos = (playerTransform != null) ? playerTransform.position : transform.position;
@@ -154,3 +156,6 @@ public class EnemySpawner : MonoBehaviour
         Gizmos.DrawWireCube(boxCenter, boxSize);
     }
 }
+ 
+
+
