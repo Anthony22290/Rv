@@ -113,9 +113,9 @@ public class PistolaVR : MonoBehaviour
 
         // --- ICONO DE RECARGA ---
         reloadIconObj = new GameObject("ReloadIcon");
-        reloadIconObj.transform.SetParent(transform);
-        reloadIconObj.transform.position = holoObj.transform.position + holoObj.transform.forward * 0.01f;
-        reloadIconObj.transform.rotation = holoObj.transform.rotation;
+        reloadIconObj.transform.SetParent(holoObj.transform); // Volvemos a hacerlo hijo del texto
+        reloadIconObj.transform.localPosition = new Vector3(0, 0, -0.01f); // Justo frente al texto
+        reloadIconObj.transform.localRotation = Quaternion.identity;
         
         SpriteRenderer sr = reloadIconObj.AddComponent<SpriteRenderer>();
 #if UNITY_EDITOR
@@ -123,8 +123,8 @@ public class PistolaVR : MonoBehaviour
 #endif
         if (reloadSprite != null) sr.sprite = reloadSprite;
 
-        // Escala absoluta de 5cm
-        reloadIconObj.transform.localScale = new Vector3(0.025f / parentScale.x, 0.025f / parentScale.y, 0.025f / parentScale.z);
+        // Escala local pequenisima en relacion al texto
+        reloadIconObj.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f); 
         reloadIconObj.SetActive(false);
     }
 
@@ -287,3 +287,4 @@ public class PistolaVR : MonoBehaviour
  
 
  
+
