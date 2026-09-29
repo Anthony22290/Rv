@@ -27,6 +27,7 @@ public class PistolaVR : MonoBehaviour
 
     [Header("Efectos")]
     public AudioClip sonidoDisparo;
+    public AudioClip sonidoRecarga;
     private AudioSource audioSource;
 
     [Header("UI de Recarga")]
@@ -251,6 +252,7 @@ public class PistolaVR : MonoBehaviour
     IEnumerator RutinaRecarga()
     {
         estaRecargando = true;
+        if (sonidoRecarga != null && audioSource != null) audioSource.PlayOneShot(sonidoRecarga);
         if (textoMunicion != null) textoMunicion.text = "";
         if (reloadIconObj != null) reloadIconObj.SetActive(true);
         
@@ -287,4 +289,5 @@ public class PistolaVR : MonoBehaviour
  
 
  
+
 

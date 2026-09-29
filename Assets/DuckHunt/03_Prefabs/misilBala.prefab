@@ -117,7 +117,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4321357086728202724}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 12.685268, y: -0.0000001296819, z: -17.4078}
   m_LocalScale: {x: 0.05, y: 0.05, z: 0.05}
   m_ConstrainProportionsScale: 0
@@ -161,6 +161,7 @@ MonoBehaviour:
   velocidad: 25
   tiempoVida: 3.5
   trailColor: {r: 1, g: 0.75, b: 0.1, a: 1}
+  sonidoImpacto: {fileID: 8300000, guid: 04cedef1cdaf1c34aad55f217370fc00, type: 3}
 --- !u!96 &1610495685550119956
 TrailRenderer:
   serializedVersion: 4

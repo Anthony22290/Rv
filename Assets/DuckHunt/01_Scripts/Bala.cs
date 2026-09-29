@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 [RequireComponent(typeof(Collider))]
 public class Bala : MonoBehaviour
@@ -9,6 +9,7 @@ public class Bala : MonoBehaviour
 
     [Header("Efectos Visuales")]
     public Color trailColor = new Color(1f, 0.75f, 0.1f, 1f);
+    public AudioClip sonidoImpacto;
 
     private Vector3 previousPosition;
     private TrailRenderer trail;
@@ -16,10 +17,7 @@ public class Bala : MonoBehaviour
     void Awake()
     {
         Collider col = GetComponent<Collider>();
-        if (col != null)
-        {
-            col.isTrigger = true;
-        }
+        if (col != null) col.isTrigger = true;
 
         trail = GetComponent<TrailRenderer>();
         if (trail == null)
@@ -56,7 +54,6 @@ public class Bala : MonoBehaviour
     void Update()
     {
         Vector3 newPosition = transform.position + (transform.forward * (velocidad * Time.deltaTime));
-
         Vector3 moveDelta = newPosition - previousPosition;
         float distance = moveDelta.magnitude;
 
@@ -64,17 +61,16 @@ public class Bala : MonoBehaviour
         {
             if (Physics.Raycast(previousPosition, moveDelta.normalized, out RaycastHit hit, distance))
             {
-                // Impacto con Enemigo
                 EnemyTarget enemy = hit.collider.GetComponentInParent<EnemyTarget>() ?? hit.collider.GetComponent<EnemyTarget>();
                 if (enemy != null || hit.collider.name.ToLower().Contains("pato") || hit.collider.name.ToLower().Contains("bird"))
                 {
+                    if (sonidoImpacto != null) AudioSource.PlayClipAtPoint(sonidoImpacto, hit.point, 1.0f);
                     if (enemy != null) enemy.OnHit();
                     else Destroy(hit.collider.gameObject);
                     Destroy(gameObject);
                     return;
                 }
 
-                // Impacto con Power-Up
                 PowerUpItem powerUp = hit.collider.GetComponentInParent<PowerUpItem>() ?? hit.collider.GetComponent<PowerUpItem>();
                 if (powerUp != null || hit.collider.name.ToLower().Contains("powerup"))
                 {
@@ -84,7 +80,6 @@ public class Bala : MonoBehaviour
                 }
             }
         }
-
         previousPosition = transform.position;
         transform.position = newPosition;
     }
@@ -94,6 +89,7 @@ public class Bala : MonoBehaviour
         EnemyTarget enemy = other.GetComponentInParent<EnemyTarget>() ?? other.GetComponent<EnemyTarget>();
         if (enemy != null || other.name.ToLower().Contains("pato") || other.name.ToLower().Contains("bird"))
         {
+            if (sonidoImpacto != null) AudioSource.PlayClipAtPoint(sonidoImpacto, transform.position, 1.0f);
             if (enemy != null) enemy.OnHit();
             else Destroy(other.gameObject);
             Destroy(gameObject);
