@@ -12,12 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac2e6244e238dcb4283e29d52ec44c45, type: 3}
   m_Name: Pato_Rapido
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDataSO
-  enemyName: Pato Veloz
+  enemyName: Azulejo Veloz
   scorePoints: 250
-  moveSpeed: 6
+  birdPrefab: {fileID: 100092, guid: 040770b1b5d24ef48be3b2b48353c1ff, type: 3}
+  bodyColor: {r: 1, g: 1, b: 1, a: 1}
+  duckMaterial: {fileID: 0}
+  scale: {x: 1.3, y: 1.3, z: 1.3}
+  moveSpeed: 6.8
   movementPattern: 1
-  waveAmplitude: 1.5
-  waveFrequency: 4.5
-  bodyColor: {r: 0.2, g: 0.6, b: 1, a: 1}
-  scale: {x: 0.6, y: 0.5, z: 0.6}
+  waveAmplitude: 1.4
+  waveFrequency: 4
+  birdChirpSound: {fileID: 8300000, guid: e868c18d4e0b5ab45af52645c6680844, type: 3}
+  birdFlySound: {fileID: 8300000, guid: ae13220b2fee67344b8b455414c59ff4, type: 3}
+  birdHitSound: {fileID: 0}
   maxLifeTime: 8
+  isAggressive: 0

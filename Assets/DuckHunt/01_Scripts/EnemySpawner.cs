@@ -1,47 +1,49 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// Genera patos de forma dinámica a lo largo del recorrido en función de la posición actual del jugador.
+/// Genera pajaros (Living Birds) y asegura la presencia del generador de Power-Ups a lo largo del recorrido.
 /// </summary>
 public class EnemySpawner : MonoBehaviour
 {
     [Header("Referencias")]
-    [Tooltip("Prefab del enemigo (Pato3D).")]
+    [Tooltip("Prefab del enemigo base (Pato3D).")]
     public GameObject enemyBasePrefab;
 
-    [Tooltip("Tipos de patos configurados con Scriptable Objects.")]
+    [Tooltip("Tipos de pajaros configurados con Scriptable Objects (Living Birds).")]
     public EnemyDataSO[] enemyTypes;
 
-    [Tooltip("Transform del jugador o cámara VR. Si se deja vacío, se detecta automáticamente.")]
+    [Tooltip("Transform del jugador o camara VR. Si se deja vacio, se detecta automaticamente.")]
     public Transform playerTransform;
 
-    [Header("Zona de Spawn Dinámica (Relativa al Jugador)")]
-    [Tooltip("Distancia mínima por delante del jugador donde aparecen los patos")]
+    [Header("Zona de Spawn Dinamica (Relativa al Jugador)")]
+    [Tooltip("Distancia minima por delante del jugador donde aparecen los pajaros")]
     public float spawnDistanceAheadMin = 14f;
 
-    [Tooltip("Distancia máxima por delante del jugador")]
+    [Tooltip("Distancia maxima por delante del jugador")]
     public float spawnDistanceAheadMax = 22f;
 
     [Tooltip("Distancia horizontal a los lados del camino donde nacen")]
     public float spawnSideDistance = 12f;
 
-    [Tooltip("Altura mínima de vuelo")]
+    [Tooltip("Altura minima de vuelo")]
     public float minSpawnHeight = 2.0f;
 
-    [Tooltip("Altura máxima de vuelo")]
+    [Tooltip("Altura maxima de vuelo")]
     public float maxSpawnHeight = 5.5f;
 
-    [Header("Frecuencia de Aparición")]
-    public float spawnIntervalMin = 1.8f;
-    public float spawnIntervalMax = 3.5f;
+    [Header("Frecuencia de Aparicion")]
+    public float spawnIntervalMin = 1.6f;
+    public float spawnIntervalMax = 3.2f;
     public bool autoSpawn = true;
+
+    [Header("Power-Ups")]
+    public bool spawnPowerUps = true;
 
     private Coroutine spawnRoutine;
 
     void Start()
     {
-        // Buscar al jugador automáticamente si no fue asignado en el inspector
         if (playerTransform == null)
         {
             var mover = FindAnyObjectByType<VRAutoForwardMover>();
@@ -57,6 +59,13 @@ public class EnemySpawner : MonoBehaviour
             {
                 playerTransform = transform;
             }
+        }
+
+        if (spawnPowerUps && FindAnyObjectByType<PowerUpSpawner>() == null)
+        {
+            GameObject powerUpSpawnerObj = new GameObject("PowerUpSpawner_Auto");
+            var powerSpawner = powerUpSpawnerObj.AddComponent<PowerUpSpawner>();
+            powerSpawner.playerTransform = playerTransform;
         }
 
         if (autoSpawn)
@@ -119,11 +128,11 @@ public class EnemySpawner : MonoBehaviour
         }
 
         Vector3 flightDirection;
-        bool shouldAttack = (selectedData != null && selectedData.isAggressive) || (Random.value > 0.6f); // 40% de patos atacan autom�ticamente
+        bool shouldAttack = (selectedData != null && selectedData.isAggressive) || (Random.value > 0.65f);
         if (shouldAttack)
         {
             Vector3 targetHead = playerPos;
-            targetHead.y += 1.6f;
+            targetHead.y += 1.2f;
             flightDirection = (targetHead - spawnPosition).normalized;
         }
         else
@@ -147,6 +156,7 @@ public class EnemySpawner : MonoBehaviour
 
         return newEnemy;
     }
+
     void OnDrawGizmosSelected()
     {
         Vector3 playerPos = (playerTransform != null) ? playerTransform.position : transform.position;
@@ -156,6 +166,3 @@ public class EnemySpawner : MonoBehaviour
         Gizmos.DrawWireCube(boxCenter, boxSize);
     }
 }
- 
-
-

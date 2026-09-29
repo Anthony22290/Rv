@@ -12,12 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac2e6244e238dcb4283e29d52ec44c45, type: 3}
   m_Name: Pato_Normal
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDataSO
-  enemyName: "Pato Com\xFAn"
+  enemyName: Cardenal Rojo
   scorePoints: 100
-  moveSpeed: 3.5
+  birdPrefab: {fileID: 100092, guid: 5a7612e645ba26a43a6483249999e907, type: 3}
+  bodyColor: {r: 1, g: 1, b: 1, a: 1}
+  duckMaterial: {fileID: 0}
+  scale: {x: 1.3, y: 1.3, z: 1.3}
+  moveSpeed: 4.2
   movementPattern: 1
   waveAmplitude: 1
   waveFrequency: 2.5
-  bodyColor: {r: 0, g: 1, b: 0, a: 1}
-  scale: {x: 0.8, y: 0.6, z: 0.8}
-  maxLifeTime: 8
+  birdChirpSound: {fileID: 8300000, guid: 148e954901f21104a960804e72ae599b, type: 3}
+  birdFlySound: {fileID: 8300000, guid: 9dabaef0cd2ecb241956e3db52d3bc8d, type: 3}
+  birdHitSound: {fileID: 0}
+  maxLifeTime: 9
+  isAggressive: 0

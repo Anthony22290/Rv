@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine.UI;
 
 /// <summary>
-/// Interfaz de Usuario (HUD en Realidad Virtual) para mostrar los Puntos y la Vida del jugador.
+/// Interfaz de Usuario (HUD en Realidad Virtual) para mostrar los Puntos, la Vida del jugador y Power-Ups activos.
 /// Permanece cómodamente visible en el campo de visión del jugador con auto-generación de interfaz.
 /// </summary>
 public class PlayerHUD : MonoBehaviour
@@ -18,6 +18,9 @@ public class PlayerHUD : MonoBehaviour
     [Tooltip("Texto para mostrar la vida / corazones")]
     public TextMeshProUGUI healthText;
 
+    [Tooltip("Texto para mostrar estados de Power-Ups")]
+    public TextMeshProUGUI powerUpText;
+
     [Header("Configuración de Posición en VR")]
     [Tooltip("Distancia desde la cámara")]
     public float distanceFromCamera = 1.35f;
@@ -30,6 +33,13 @@ public class PlayerHUD : MonoBehaviour
 
     [Header("Puntuación Global")]
     public static int totalScore = 0;
+
+    [Header("Estado de Power-Ups")]
+    public static float doublePointsTimer = 0f;
+    public static bool isDoublePointsActive => doublePointsTimer > 0f;
+
+    private static float shieldTimer = 0f;
+    public static bool isShieldActive => shieldTimer > 0f;
 
     private Camera targetCamera;
     private int displayedScore = 0;
@@ -78,6 +88,40 @@ public class PlayerHUD : MonoBehaviour
         {
             UpdateHealth(3, 3);
         }
+
+        UpdatePowerUpDisplay();
+    }
+
+    void Update()
+    {
+        bool changed = false;
+
+        if (doublePointsTimer > 0f)
+        {
+            doublePointsTimer -= Time.deltaTime;
+            if (doublePointsTimer <= 0f)
+            {
+                doublePointsTimer = 0f;
+                Debug.Log("[PlayerHUD] Power-Up Doble Puntos terminado.");
+            }
+            changed = true;
+        }
+
+        if (shieldTimer > 0f)
+        {
+            shieldTimer -= Time.deltaTime;
+            if (shieldTimer <= 0f)
+            {
+                shieldTimer = 0f;
+                Debug.Log("[PlayerHUD] Power-Up Escudo terminado.");
+            }
+            changed = true;
+        }
+
+        if (changed)
+        {
+            UpdatePowerUpDisplay();
+        }
     }
 
     void LateUpdate()
@@ -88,25 +132,56 @@ public class PlayerHUD : MonoBehaviour
             if (targetCamera == null) return;
         }
 
-        // Posicionar el HUD frente a la cámara suavemente
         Vector3 targetPosition = targetCamera.transform.position 
             + (targetCamera.transform.forward * distanceFromCamera) 
             + (targetCamera.transform.up * offset.y) 
             + (targetCamera.transform.right * offset.x);
 
         transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * followSpeed);
-        
-        // Orientar hacia el jugador
         transform.rotation = Quaternion.LookRotation(transform.position - targetCamera.transform.position);
     }
 
     /// <summary>
-    /// Suma puntos a la puntuación global y actualiza la interfaz.
+    /// Activa el multiplicador de doble puntos por la duración indicada en segundos.
+    /// </summary>
+    public static void ActivateDoublePoints(float duration = 15f)
+    {
+        doublePointsTimer = Mathf.Max(doublePointsTimer, duration);
+        Debug.Log($"[PlayerHUD] ⭐ ¡DOBLE PUNTOS ACTIVADO! ({duration}s)");
+        if (Instance != null)
+        {
+            Instance.UpdatePowerUpDisplay();
+        }
+    }
+
+    /// <summary>
+    /// Actualiza el temporizador del escudo en el HUD.
+    /// </summary>
+    public static void SetShieldStatus(float duration)
+    {
+        shieldTimer = duration;
+        if (Instance != null)
+        {
+            Instance.UpdatePowerUpDisplay();
+        }
+    }
+
+    /// <summary>
+    /// Suma puntos a la puntuación global (aplicando multiplicador x2 si está activo) y actualiza la interfaz.
     /// </summary>
     public static void AddScore(int points)
     {
-        totalScore += points;
-        Debug.Log($"[PlayerHUD] 🎯 +{points} PUNTOS | Puntuación total: {totalScore}");
+        int finalPoints = isDoublePointsActive ? (points * 2) : points;
+        totalScore += finalPoints;
+
+        if (isDoublePointsActive)
+        {
+            Debug.Log($"[PlayerHUD] 🎯 +{finalPoints} PUNTOS (⭐ 2X ACTIVO!) | Puntuación total: {totalScore}");
+        }
+        else
+        {
+            Debug.Log($"[PlayerHUD] 🎯 +{finalPoints} PUNTOS | Puntuación total: {totalScore}");
+        }
 
         if (Instance == null)
         {
@@ -114,19 +189,22 @@ public class PlayerHUD : MonoBehaviour
             Instance = hudObj.AddComponent<PlayerHUD>();
         }
         
-        Instance.OnScoreChanged(totalScore, points);
+        Instance.OnScoreChanged(totalScore, finalPoints);
     }
 
     /// <summary>
-    /// Reinicia la puntuación al iniciar una nueva partida o morir.
+    /// Reinicia la puntuación al iniciar una nueva partida o tras morir.
     /// </summary>
     public static void ResetScore()
     {
         totalScore = 0;
+        doublePointsTimer = 0f;
+        shieldTimer = 0f;
         if (Instance != null)
         {
             Instance.displayedScore = 0;
             Instance.UpdateScoreDisplay(0);
+            Instance.UpdatePowerUpDisplay();
         }
     }
 
@@ -136,20 +214,19 @@ public class PlayerHUD : MonoBehaviour
         {
             StopCoroutine(scoreAnimCoroutine);
         }
-        scoreAnimCoroutine = StartCoroutine(AnimateScoreRoutine(newScore));
+        scoreAnimCoroutine = StartCoroutine(AnimateScoreRoutine(newScore, isDoublePointsActive));
     }
 
-    private IEnumerator AnimateScoreRoutine(int targetScore)
+    private IEnumerator AnimateScoreRoutine(int targetScore, bool wasDouble)
     {
         int startScore = displayedScore;
         float elapsed = 0f;
         float duration = 0.35f;
 
-        // Efecto de pulso en el texto
         if (scoreText != null)
         {
-            scoreText.transform.localScale = Vector3.one * 1.25f;
-            scoreText.color = new Color(1.0f, 0.95f, 0.3f); // Amarillo brillante
+            scoreText.transform.localScale = Vector3.one * (wasDouble ? 1.4f : 1.25f);
+            scoreText.color = wasDouble ? new Color(1.0f, 0.6f, 0.1f) : new Color(1.0f, 0.95f, 0.3f);
         }
 
         while (elapsed < duration)
@@ -175,13 +252,11 @@ public class PlayerHUD : MonoBehaviour
     {
         if (scoreText != null)
         {
-            scoreText.text = $"🎯 PUNTOS: <color=#FFD700>{score:N0}</color>";
+            string bonusIndicator = isDoublePointsActive ? " <color=#FFA500>[2X]</color>" : "";
+            scoreText.text = $"🎯 PUNTOS: <color=#FFD700>{score:N0}</color>{bonusIndicator}";
         }
     }
 
-    /// <summary>
-    /// Actualiza la visualización de la vida (corazones y número).
-    /// </summary>
     public void UpdateHealth(int currentHealth, int maxHealth)
     {
         if (healthText != null)
@@ -201,6 +276,24 @@ public class PlayerHUD : MonoBehaviour
 
             healthText.text = $"VIDA: {hearts}({currentHealth}/{maxHealth})";
         }
+    }
+
+    public void UpdatePowerUpDisplay()
+    {
+        if (powerUpText == null) return;
+
+        string powerUpInfo = "";
+        if (isShieldActive)
+        {
+            powerUpInfo += $"<color=#00E5FF>🛡️ ESCUDO ({Mathf.CeilToInt(shieldTimer)}s)</color> ";
+        }
+        if (isDoublePointsActive)
+        {
+            powerUpInfo += $"<color=#FFD700>⭐ 2X PUNTOS ({Mathf.CeilToInt(doublePointsTimer)}s)</color>";
+        }
+
+        powerUpText.text = powerUpInfo;
+        powerUpText.gameObject.SetActive(!string.IsNullOrEmpty(powerUpInfo));
     }
 
     private void CrearHUDUIAutomatico()
@@ -223,7 +316,7 @@ public class PlayerHUD : MonoBehaviour
         RectTransform rt = GetComponent<RectTransform>();
         if (rt != null)
         {
-            rt.sizeDelta = new Vector2(700f, 130f);
+            rt.sizeDelta = new Vector2(760f, 160f);
             transform.localScale = Vector3.one * 0.0016f;
         }
 
@@ -246,13 +339,13 @@ public class PlayerHUD : MonoBehaviour
         GameObject scoreObj = new GameObject("Score_Text");
         scoreObj.transform.SetParent(panelObj.transform, false);
         RectTransform scoreRT = scoreObj.AddComponent<RectTransform>();
-        scoreRT.anchorMin = new Vector2(0.04f, 0.1f);
-        scoreRT.anchorMax = new Vector2(0.52f, 0.9f);
+        scoreRT.anchorMin = new Vector2(0.04f, 0.35f);
+        scoreRT.anchorMax = new Vector2(0.52f, 0.92f);
         scoreRT.sizeDelta = Vector2.zero;
 
         scoreText = scoreObj.AddComponent<TextMeshProUGUI>();
         scoreText.text = $"🎯 PUNTOS: <color=#FFD700>{totalScore:N0}</color>";
-        scoreText.fontSize = 34;
+        scoreText.fontSize = 32;
         scoreText.fontStyle = FontStyles.Bold;
         scoreText.alignment = TextAlignmentOptions.MidlineLeft;
         scoreText.color = Color.white;
@@ -261,8 +354,8 @@ public class PlayerHUD : MonoBehaviour
         GameObject healthObj = new GameObject("Health_Text");
         healthObj.transform.SetParent(panelObj.transform, false);
         RectTransform healthRT = healthObj.AddComponent<RectTransform>();
-        healthRT.anchorMin = new Vector2(0.52f, 0.1f);
-        healthRT.anchorMax = new Vector2(0.96f, 0.9f);
+        healthRT.anchorMin = new Vector2(0.52f, 0.35f);
+        healthRT.anchorMax = new Vector2(0.96f, 0.92f);
         healthRT.sizeDelta = Vector2.zero;
 
         healthText = healthObj.AddComponent<TextMeshProUGUI>();
@@ -271,5 +364,21 @@ public class PlayerHUD : MonoBehaviour
         healthText.fontStyle = FontStyles.Bold;
         healthText.alignment = TextAlignmentOptions.MidlineRight;
         healthText.color = Color.white;
+
+        // Texto de Power-Ups Activos (Fila Inferior)
+        GameObject powerUpObj = new GameObject("PowerUp_Text");
+        powerUpObj.transform.SetParent(panelObj.transform, false);
+        RectTransform powerUpRT = powerUpObj.AddComponent<RectTransform>();
+        powerUpRT.anchorMin = new Vector2(0.04f, 0.05f);
+        powerUpRT.anchorMax = new Vector2(0.96f, 0.35f);
+        powerUpRT.sizeDelta = Vector2.zero;
+
+        powerUpText = powerUpObj.AddComponent<TextMeshProUGUI>();
+        powerUpText.text = "";
+        powerUpText.fontSize = 22;
+        powerUpText.fontStyle = FontStyles.Bold;
+        powerUpText.alignment = TextAlignmentOptions.Center;
+        powerUpText.color = Color.cyan;
+        powerUpText.gameObject.SetActive(false);
     }
 }

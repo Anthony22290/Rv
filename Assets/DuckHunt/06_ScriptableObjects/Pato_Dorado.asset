@@ -12,12 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac2e6244e238dcb4283e29d52ec44c45, type: 3}
   m_Name: Pato_Dorado
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDataSO
-  enemyName: Pato Dorado Bonus
+  enemyName: Jilguero Dorado Bonus
   scorePoints: 500
-  moveSpeed: 8
+  birdPrefab: {fileID: 100092, guid: 40ba60a1fcd52884f8878990bd8dd37e, type: 3}
+  bodyColor: {r: 1, g: 1, b: 1, a: 1}
+  duckMaterial: {fileID: 0}
+  scale: {x: 1.4, y: 1.4, z: 1.4}
+  moveSpeed: 8.5
   movementPattern: 2
-  waveAmplitude: 2.5
-  waveFrequency: 1.5
-  bodyColor: {r: 1, g: 0.85, b: 0.1, a: 1}
-  scale: {x: 0.5, y: 0.4, z: 0.5}
-  maxLifeTime: 8
+  waveAmplitude: 2.2
+  waveFrequency: 2
+  birdChirpSound: {fileID: 8300000, guid: d261fcef075d71040aaa5ec709db8012, type: 3}
+  birdFlySound: {fileID: 8300000, guid: 9dabaef0cd2ecb241956e3db52d3bc8d, type: 3}
+  birdHitSound: {fileID: 0}
+  maxLifeTime: 7
+  isAggressive: 0

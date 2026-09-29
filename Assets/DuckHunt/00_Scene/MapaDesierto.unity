@@ -46252,6 +46252,8 @@ MonoBehaviour:
   currentHealth: 0
   menuSceneName: MainMenu
   invulnerabilityDuration: 1
+  isShieldActive: 0
+  shieldTimeRemaining: 0
 --- !u!1 &441758019
 GameObject:
   m_ObjectHideFlags: 0
@@ -60230,6 +60232,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHUD
   scoreText: {fileID: 1545432194}
   healthText: {fileID: 440281458}
+  powerUpText: {fileID: 0}
   distanceFromCamera: 1.35
   offset: {x: 0, y: 0.42, z: 0}
   followSpeed: 8.5
@@ -150081,6 +150084,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 834e058b6d0c9f949a01b005eeda1659, type: 2}
   - {fileID: 11400000, guid: 09a241d433c6f4d4a98c45191ee91f20, type: 2}
   - {fileID: 11400000, guid: b11b53da31c39d640aa09a0efcf79def, type: 2}
+  - {fileID: 11400000, guid: 9db6b0ce71d99b1468c30bd39bcb2210, type: 2}
+  - {fileID: 11400000, guid: d749fa10e389abc4d8ccd24132d95958, type: 2}
+  - {fileID: 11400000, guid: 6b30ec1a01dc0294eaf4be94d910c7c9, type: 2}
   playerTransform: {fileID: 441087514}
   spawnDistanceAheadMin: 14
   spawnDistanceAheadMax: 22
@@ -150090,6 +150096,7 @@ MonoBehaviour:
   spawnIntervalMin: 1.8
   spawnIntervalMax: 3.2
   autoSpawn: 1
+  spawnPowerUps: 1
 --- !u!4 &1464325254
 Transform:
   m_ObjectHideFlags: 0

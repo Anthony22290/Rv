@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -6,40 +6,40 @@ using TMPro;
 
 /// <summary>
 /// Mueve al jugador (XR Origin) constantemente hacia adelante a lo largo del camino.
-/// Gestiona la progresión de niveles (MapaDesierto -> Mapa2) y la pantalla de finalización del juego en VR.
+/// Gestiona la progresion de niveles (MapaDesierto -> Mapa2) y la pantalla de finalizacion del juego en VR.
 /// </summary>
 public class VRAutoForwardMover : MonoBehaviour
 {
-    [Header("Configuración de Movimiento")]
+    [Header("Configuracion de Movimiento")]
     [Tooltip("Velocidad de avance en metros por segundo")]
     public float velocidad = 2.8f;
 
     [Tooltip("Permite pausar o reanudar el avance")]
     public bool avanzar = true;
 
-    [Tooltip("Dirección del movimiento (por defecto hacia adelante en Z)")]
+    [Tooltip("Direccion del movimiento (por defecto hacia adelante en Z)")]
     public Vector3 direccion = Vector3.forward;
 
-    [Header("Límites y Progresión de Escena")]
-    [Tooltip("Distancia máxima en metros antes de completar el mapa")]
+    [Header("Limites y Progresion de Escena")]
+    [Tooltip("Distancia maxima en metros antes de completar el mapa")]
     public float distanciaMaximaZ = 240f;
 
-    [Tooltip("Indica si este es el mapa final del juego (Mapa2). Si es true, muestra mensaje de victoria y regresa al menú.")]
+    [Tooltip("Indica si este es el mapa final del juego (Mapa2). Si es true, muestra mensaje de victoria y regresa al menu.")]
     public bool esNivelFinal = false;
 
-    [Tooltip("Si es true y no es nivel final ni hay siguiente escena, reinicia posición")]
+    [Tooltip("Si es true y no es nivel final ni hay siguiente escena, reinicia posicion")]
     public bool reiniciarAlFinal = false;
 
     [Tooltip("Nombre de la siguiente escena a cargar si no es el nivel final")]
     public string siguienteEscena = "Mapa2";
 
-    [Tooltip("Nombre de la escena del menú principal")]
+    [Tooltip("Nombre de la escena del menu principal")]
     public string menuSceneName = "MainMenu";
 
-    [Tooltip("Segundos de espera mostrando la pantalla de victoria antes de volver al menú")]
+    [Tooltip("Segundos de espera mostrando la pantalla de victoria antes de volver al menu")]
     public float tiempoEsperaFinJuego = 5.0f;
 
-    [Tooltip("Segundos de espera en la transición entre mapas")]
+    [Tooltip("Segundos de espera en la transicion entre mapas")]
     public float tiempoTransicionEntreMapas = 2.0f;
 
     private Vector3 posicionInicial;
@@ -59,7 +59,6 @@ public class VRAutoForwardMover : MonoBehaviour
     {
         posicionInicial = transform.position;
 
-        // Auto-detección inteligente según la escena activa para evitar desconfiguraciones
         string activeScene = SceneManager.GetActiveScene().name;
         if (activeScene.Equals("MapaDesierto", System.StringComparison.OrdinalIgnoreCase))
         {
@@ -73,37 +72,37 @@ public class VRAutoForwardMover : MonoBehaviour
             siguienteEscena = "";
         }
 
-        Debug.Log($"[VRAutoForwardMover] Iniciado en '{activeScene}'. Destino final: {(esNivelFinal ? "Fin del Juego -> Menú" : $"Siguiente Mapa -> {siguienteEscena}")}");
+        Debug.Log($"[VRAutoForwardMover] Iniciado en '{activeScene}'. Destino final: {(esNivelFinal ? "Fin del Juego -> Menu" : $"Siguiente Mapa -> {siguienteEscena}")}");
     }
 
     void Update()
     {
         if (!avanzar || nivelCompletado) return;
 
-        // Desplazamiento continuo y suave
         transform.position += direccion.normalized * velocidad * Time.deltaTime;
 
-        // Comprobar si llegó al final del recorrido
         if (transform.position.z >= posicionInicial.z + distanciaMaximaZ)
         {
             CompletarNivel();
         }
     }
 
-    /// <summary>
-    /// Se ejecuta al alcanzar la meta del mapa actual (por trigger o por distancia).
-    /// </summary>
     public void CompletarNivel()
     {
         if (nivelCompletado) return;
         nivelCompletado = true;
         avanzar = false;
 
-        // Detener generador de enemigos si existe en la escena
         var spawner = Object.FindAnyObjectByType<EnemySpawner>();
         if (spawner != null)
         {
             spawner.StopSpawning();
+        }
+
+        var powerSpawner = Object.FindAnyObjectByType<PowerUpSpawner>();
+        if (powerSpawner != null)
+        {
+            powerSpawner.StopSpawning();
         }
 
         if (esNivelFinal || string.IsNullOrEmpty(siguienteEscena))
@@ -120,7 +119,7 @@ public class VRAutoForwardMover : MonoBehaviour
 
     private IEnumerator TransicionSiguienteNivelRutina()
     {
-        MostrarMensajeVR("🏜️ ¡MAPA DEL DESIERTO COMPLETADO! 🏜️", $"Cargando siguiente nivel: {siguienteEscena}...", new Color(0.2f, 0.8f, 0.3f));
+        MostrarMensajeVR("🏆 ¡MAPA DEL DESIERTO COMPLETADO! 🏆", $"Cargando siguiente nivel: {siguienteEscena}...", new Color(0.2f, 0.8f, 0.3f));
 
         yield return new WaitForSeconds(tiempoTransicionEntreMapas);
 
@@ -129,13 +128,11 @@ public class VRAutoForwardMover : MonoBehaviour
 
     private IEnumerator FinDelJuegoRutina()
     {
-        // Reproducir sonido de fanfarria de victoria
         AudioSource audioSrc = gameObject.AddComponent<AudioSource>();
         audioSrc.playOnAwake = false;
-        audioSrc.spatialBlend = 0f; // 2D para que se escuche claro en ambos oídos VR
+        audioSrc.spatialBlend = 0f;
         audioSrc.PlayOneShot(SonidosArmas.SonidoVictoria, 0.9f);
 
-        // Crear UI flotante de victoria en VR
         GameObject victoryCanvasObj = CrearCanvasFinJuego(out TextMeshProUGUI txtCountdown);
 
         float tiempoRestante = tiempoEsperaFinJuego;
@@ -143,18 +140,14 @@ public class VRAutoForwardMover : MonoBehaviour
         {
             if (txtCountdown != null)
             {
-                txtCountdown.text = $"Volviendo al Menú Principal en <color=#FFD700>{Mathf.CeilToInt(tiempoRestante)}s</color>...";
+                txtCountdown.text = $"Volviendo al Menu Principal en <color=#FFD700>{Mathf.CeilToInt(tiempoRestante)}s</color>...";
             }
             yield return new WaitForSeconds(1.0f);
             tiempoRestante -= 1.0f;
         }
 
-        if (victoryCanvasObj != null)
-        {
-            Destroy(victoryCanvasObj);
-        }
+        if (victoryCanvasObj != null) Destroy(victoryCanvasObj);
 
-        Debug.Log("[VRAutoForwardMover] Regresando al Menú Principal: " + menuSceneName);
         if (!string.IsNullOrEmpty(menuSceneName))
         {
             SceneManager.LoadScene(menuSceneName);
@@ -167,33 +160,28 @@ public class VRAutoForwardMover : MonoBehaviour
 
     private GameObject CrearCanvasFinJuego(out TextMeshProUGUI txtCountdown)
     {
-        txtCountdown = null;
         if (targetCamera == null) targetCamera = Camera.main;
 
         GameObject canvasObj = new GameObject("VR_Victory_Canvas");
         if (targetCamera != null)
         {
-            canvasObj.transform.position = targetCamera.transform.position + (targetCamera.transform.forward * 1.75f) + (Vector3.up * 0.15f);
+            canvasObj.transform.position = targetCamera.transform.position + (targetCamera.transform.forward * 1.8f);
             canvasObj.transform.rotation = Quaternion.LookRotation(canvasObj.transform.position - targetCamera.transform.position);
         }
         else
         {
-            canvasObj.transform.position = transform.position + new Vector3(0, 1.5f, 2.0f);
+            canvasObj.transform.position = transform.position + new Vector3(0, 1.5f, 2.5f);
         }
-        canvasObj.transform.localScale = Vector3.one * 0.0028f;
+        canvasObj.transform.localScale = Vector3.one * 0.003f;
 
         Canvas canvas = canvasObj.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.WorldSpace;
         canvas.worldCamera = targetCamera;
 
-        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
-        scaler.dynamicPixelsPerUnit = 3f;
-
         RectTransform canvasRect = canvasObj.GetComponent<RectTransform>();
-        canvasRect.sizeDelta = new Vector2(850f, 520f);
+        canvasRect.sizeDelta = new Vector2(850f, 450f);
 
-        // Panel de fondo
-        GameObject panelObj = new GameObject("Panel_Fondo");
+        GameObject panelObj = new GameObject("Panel");
         panelObj.transform.SetParent(canvasObj.transform, false);
         RectTransform panelRect = panelObj.AddComponent<RectTransform>();
         panelRect.anchorMin = Vector2.zero;
@@ -201,49 +189,42 @@ public class VRAutoForwardMover : MonoBehaviour
         panelRect.sizeDelta = Vector2.zero;
 
         Image panelImg = panelObj.AddComponent<Image>();
-        panelImg.color = new Color(0.06f, 0.05f, 0.04f, 0.93f);
+        panelImg.color = new Color(0.05f, 0.05f, 0.05f, 0.92f);
 
-        // Borde dorado
-        GameObject borderObj = new GameObject("Borde");
-        borderObj.transform.SetParent(panelObj.transform, false);
-        RectTransform borderRect = borderObj.AddComponent<RectTransform>();
-        borderRect.anchorMin = new Vector2(0.02f, 0.02f);
-        borderRect.anchorMax = new Vector2(0.98f, 0.98f);
-        borderRect.sizeDelta = Vector2.zero;
-        Outline outline = borderObj.AddComponent<Outline>();
-        outline.effectColor = new Color(1.0f, 0.84f, 0.0f, 0.95f);
-        outline.effectDistance = new Vector2(4, -4);
+        Outline outline = panelObj.AddComponent<Outline>();
+        outline.effectColor = new Color(1.0f, 0.8f, 0.1f, 0.9f);
+        outline.effectDistance = new Vector2(3f, -3f);
 
-        // Título de Victoria
+        // Titulo de Victoria
         GameObject titleObj = new GameObject("Texto_Titulo");
         titleObj.transform.SetParent(panelObj.transform, false);
         RectTransform titleRect = titleObj.AddComponent<RectTransform>();
-        titleRect.anchorMin = new Vector2(0.05f, 0.68f);
-        titleRect.anchorMax = new Vector2(0.95f, 0.92f);
+        titleRect.anchorMin = new Vector2(0.05f, 0.70f);
+        titleRect.anchorMax = new Vector2(0.95f, 0.95f);
         titleRect.sizeDelta = Vector2.zero;
 
         TextMeshProUGUI titleTmp = titleObj.AddComponent<TextMeshProUGUI>();
-        titleTmp.text = "🏆 ¡JUEGO FINALIZADO! 🏆";
-        titleTmp.fontSize = 52;
+        titleTmp.text = "🏆 ¡FELICITACIONES! 🏆";
+        titleTmp.fontSize = 44;
         titleTmp.fontStyle = FontStyles.Bold;
         titleTmp.alignment = TextAlignmentOptions.Center;
-        titleTmp.color = new Color(1.0f, 0.85f, 0.2f);
+        titleTmp.color = new Color(1.0f, 0.85f, 0.1f);
 
-        // Subtítulo
+        // Subtitulo
         GameObject subObj = new GameObject("Texto_Subtitulo");
         subObj.transform.SetParent(panelObj.transform, false);
         RectTransform subRect = subObj.AddComponent<RectTransform>();
-        subRect.anchorMin = new Vector2(0.05f, 0.48f);
-        subRect.anchorMax = new Vector2(0.95f, 0.66f);
+        subRect.anchorMin = new Vector2(0.05f, 0.50f);
+        subRect.anchorMax = new Vector2(0.95f, 0.68f);
         subRect.sizeDelta = Vector2.zero;
 
         TextMeshProUGUI subTmp = subObj.AddComponent<TextMeshProUGUI>();
-        subTmp.text = "¡Felicidades! Has superado todos los desafíos del desierto y la pradera.";
+        subTmp.text = "¡HAS COMPLETADO TODOS LOS NIVELES!";
         subTmp.fontSize = 28;
         subTmp.alignment = TextAlignmentOptions.Center;
         subTmp.color = new Color(0.9f, 0.9f, 0.9f);
 
-        // Puntuación Total
+        // Puntuacion Total
         GameObject scoreObj = new GameObject("Texto_Puntos");
         scoreObj.transform.SetParent(panelObj.transform, false);
         RectTransform scoreRect = scoreObj.AddComponent<RectTransform>();
@@ -258,7 +239,7 @@ public class VRAutoForwardMover : MonoBehaviour
         scoreTmp.alignment = TextAlignmentOptions.Center;
         scoreTmp.color = Color.white;
 
-        // Cuenta atrás al menú
+        // Cuenta atras al menu
         GameObject countObj = new GameObject("Texto_Countdown");
         countObj.transform.SetParent(panelObj.transform, false);
         RectTransform countRect = countObj.AddComponent<RectTransform>();
@@ -267,7 +248,7 @@ public class VRAutoForwardMover : MonoBehaviour
         countRect.sizeDelta = Vector2.zero;
 
         txtCountdown = countObj.AddComponent<TextMeshProUGUI>();
-        txtCountdown.text = $"Volviendo al Menú Principal en {Mathf.CeilToInt(tiempoEsperaFinJuego)}s...";
+        txtCountdown.text = $"Volviendo al Menu Principal en {Mathf.CeilToInt(tiempoEsperaFinJuego)}s...";
         txtCountdown.fontSize = 24;
         txtCountdown.alignment = TextAlignmentOptions.Center;
         txtCountdown.color = new Color(0.75f, 0.75f, 0.75f);

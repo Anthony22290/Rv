@@ -14,25 +14,38 @@ public class EnemyDataSO : ScriptableObject
     public string enemyName = "Pato Común";
     public int scorePoints = 100;
 
+    [Header("Modelo 3D y Skin (Living Birds)")]
+    [Tooltip("Prefab del pájaro animado de Living Birds (ej: lb_cardinalHQ, lb_blueJayHQ, etc.)")]
+    public GameObject birdPrefab;
+
+    [Tooltip("Color de tintado opcional (Color.white mantiene textura original)")]
+    public Color bodyColor = Color.white;
+
+    [Tooltip("Material personalizado opcional")]
+    public Material duckMaterial;
+
+    [Tooltip("Escala del pájaro en el juego")]
+    public Vector3 scale = new Vector3(1.4f, 1.4f, 1.4f);
+
     [Header("Movimiento")]
-    public float moveSpeed = 5f;
+    public float moveSpeed = 4.5f;
     public EnemyMovementPattern movementPattern = EnemyMovementPattern.SineWave;
     public float waveAmplitude = 1.2f;
     public float waveFrequency = 3f;
 
-    [Header("Aspecto Visual y Skin")]
-    [Tooltip("Color.white mantiene la textura original intacta. Otros colores tintan el modelo.")]
-    public Color bodyColor = Color.white;
-    
-    [Tooltip("Material que se aplicará al pato (opcional).")]
-    public Material duckMaterial;
-    
-    public Vector3 scale = new Vector3(0.7f, 0.7f, 0.7f);
+    [Header("Sonidos")]
+    [Tooltip("Canto o llamada característica del pájaro")]
+    public AudioClip birdChirpSound;
 
-    [Header("Ciclo de Vida")]
-    public float maxLifeTime = 7f; // Tiempo antes de escapar si no le disparan
+    [Tooltip("Sonido de aleteo o vuelo")]
+    public AudioClip birdFlySound;
 
-    [Header("Comportamiento")]
-    [Tooltip("Si es verdadero, el pato volará directamente hacia el jugador para atacarlo.")]
+    [Tooltip("Sonido de impacto o graznido")]
+    public AudioClip birdHitSound;
+
+    [Header("Ciclo de Vida y Comportamiento")]
+    public float maxLifeTime = 8f;
+
+    [Tooltip("Si es verdadero, vuela agresivamente hacia el jugador para atacarlo")]
     public bool isAggressive = false;
 }

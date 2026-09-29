@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac2e6244e238dcb4283e29d52ec44c45, type: 3}
+  m_Name: Pato_Petirrojo
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyDataSO
+  enemyName: Petirrojo
+  scorePoints: 150
+  birdPrefab: {fileID: 100092, guid: 91da67b32e5c13648a459e093ac1acb6, type: 3}
+  bodyColor: {r: 1, g: 1, b: 1, a: 1}
+  duckMaterial: {fileID: 0}
+  scale: {x: 1.3, y: 1.3, z: 1.3}
+  moveSpeed: 4.8
+  movementPattern: 1
+  waveAmplitude: 1.1
+  waveFrequency: 3
+  birdChirpSound: {fileID: 8300000, guid: a2c080251f6238942b88f8fb392b20ee, type: 3}
+  birdFlySound: {fileID: 8300000, guid: 9dabaef0cd2ecb241956e3db52d3bc8d, type: 3}
+  birdHitSound: {fileID: 0}
+  maxLifeTime: 8.5
+  isAggressive: 0

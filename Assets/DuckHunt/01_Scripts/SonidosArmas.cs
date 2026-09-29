@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Generador procedural de efectos de sonido para armas, explosiones y fanfarria de victoria.
+/// Generador procedural de efectos de sonido para armas, explosiones, fanfarria de victoria y power-ups.
 /// </summary>
 public static class SonidosArmas
 {
@@ -11,6 +11,11 @@ public static class SonidosArmas
     private static AudioClip _sonidoLanzaCohetes;
     private static AudioClip _sonidoExplosion;
     private static AudioClip _sonidoVictoria;
+    private static AudioClip _sonidoExtraLife;
+    private static AudioClip _sonidoShield;
+    private static AudioClip _sonidoDoublePoints;
+    private static AudioClip _sonidoShieldAbsorb;
+    private static AudioClip _sonidoPajaroAleteo;
 
     public static AudioClip SonidoPistola
     {
@@ -34,7 +39,7 @@ public static class SonidosArmas
     {
         get
         {
-            if (_sonidoEscopeta == null) _sonidoEscopeta = GenerarSonidoEscopeta();
+            if (_sonidoEscopeta == null) _sonidoEscopeta = GenerarSonanteEscopeta();
             return _sonidoEscopeta;
         }
     }
@@ -66,6 +71,51 @@ public static class SonidosArmas
         }
     }
 
+    public static AudioClip SonidoPowerUpExtraLife
+    {
+        get
+        {
+            if (_sonidoExtraLife == null) _sonidoExtraLife = GenerarSonidoExtraLife();
+            return _sonidoExtraLife;
+        }
+    }
+
+    public static AudioClip SonidoPowerUpShield
+    {
+        get
+        {
+            if (_sonidoShield == null) _sonidoShield = GenerarSonidoShield();
+            return _sonidoShield;
+        }
+    }
+
+    public static AudioClip SonidoPowerUpDoublePoints
+    {
+        get
+        {
+            if (_sonidoDoublePoints == null) _sonidoDoublePoints = GenerarSonidoDoublePoints();
+            return _sonidoDoublePoints;
+        }
+    }
+
+    public static AudioClip SonidoShieldAbsorb
+    {
+        get
+        {
+            if (_sonidoShieldAbsorb == null) _sonidoShieldAbsorb = GenerarSonidoShieldAbsorb();
+            return _sonidoShieldAbsorb;
+        }
+    }
+
+    public static AudioClip SonidoPajaroAleteo
+    {
+        get
+        {
+            if (_sonidoPajaroAleteo == null) _sonidoPajaroAleteo = GenerarSonidoAleteo();
+            return _sonidoPajaroAleteo;
+        }
+    }
+
     private static AudioClip GenerarSonidoPistola()
     {
         int sampleRate = 44100;
@@ -87,7 +137,7 @@ public static class SonidosArmas
         return clip;
     }
 
-    private static AudioClip GenerarSonidoEscopeta()
+    private static AudioClip GenerarSonanteEscopeta()
     {
         int sampleRate = 44100;
         float duration = 0.55f;
@@ -178,7 +228,6 @@ public static class SonidosArmas
         int sampleCount = Mathf.FloorToInt(sampleRate * duration);
         float[] samples = new float[sampleCount];
 
-        // Secuencia armónica de fanfarria / victoria (Do - Mi - Sol - Do agudo)
         float[] notes = new float[] { 523.25f, 659.25f, 783.99f, 1046.50f };
         float noteDuration = 0.5f;
 
@@ -198,6 +247,128 @@ public static class SonidosArmas
         }
 
         AudioClip clip = AudioClip.Create("ProceduralVictoryFanfare", sampleCount, 1, sampleRate, false);
+        clip.SetData(samples, 0);
+        return clip;
+    }
+
+    private static AudioClip GenerarSonidoExtraLife()
+    {
+        int sampleRate = 44100;
+        float duration = 0.6f;
+        int sampleCount = Mathf.FloorToInt(sampleRate * duration);
+        float[] samples = new float[sampleCount];
+
+        // 3 notas mágicas ascendentes alegres (Fa5 -> La5 -> Do6)
+        float[] freqs = new float[] { 698.46f, 880f, 1046.5f };
+        float segDur = duration / freqs.Length;
+
+        for (int i = 0; i < sampleCount; i++)
+        {
+            float t = (float)i / sampleRate;
+            int idx = Mathf.Min((int)(t / segDur), freqs.Length - 1);
+            float freq = freqs[idx];
+            float localT = t - (idx * segDur);
+
+            float env = Mathf.Exp(-localT * 8f) * Mathf.Min(1f, localT * 40f);
+            float s = Mathf.Sin(2f * Mathf.PI * freq * t) * 0.7f
+                    + Mathf.Sin(2f * Mathf.PI * freq * 2f * t) * 0.3f;
+            samples[i] = s * env * 0.6f;
+        }
+
+        AudioClip clip = AudioClip.Create("PowerUp_ExtraLife", sampleCount, 1, sampleRate, false);
+        clip.SetData(samples, 0);
+        return clip;
+    }
+
+    private static AudioClip GenerarSonidoShield()
+    {
+        int sampleRate = 44100;
+        float duration = 0.8f;
+        int sampleCount = Mathf.FloorToInt(sampleRate * duration);
+        float[] samples = new float[sampleCount];
+
+        for (int i = 0; i < sampleCount; i++)
+        {
+            float t = (float)i / sampleRate;
+            float freq = 300f + Mathf.Sin(t * 25f) * 80f + (t * 400f);
+            float env = Mathf.Sin(Mathf.Clamp01(t / 0.1f) * Mathf.PI * 0.5f) * Mathf.Exp(-t * 2.5f);
+            float hum = Mathf.Sin(2f * Mathf.PI * freq * t) * 0.5f
+                      + Mathf.Sin(2f * Mathf.PI * (freq * 0.5f) * t) * 0.3f;
+            samples[i] = hum * env * 0.65f;
+        }
+
+        AudioClip clip = AudioClip.Create("PowerUp_Shield", sampleCount, 1, sampleRate, false);
+        clip.SetData(samples, 0);
+        return clip;
+    }
+
+    private static AudioClip GenerarSonidoDoublePoints()
+    {
+        int sampleRate = 44100;
+        float duration = 0.7f;
+        int sampleCount = Mathf.FloorToInt(sampleRate * duration);
+        float[] samples = new float[sampleCount];
+
+        // Secuencia dorada brillante (Sol5 -> Si5 -> Re6 -> Sol6)
+        float[] freqs = new float[] { 783.99f, 987.77f, 1174.66f, 1567.98f };
+        float segDur = duration / freqs.Length;
+
+        for (int i = 0; i < sampleCount; i++)
+        {
+            float t = (float)i / sampleRate;
+            int idx = Mathf.Min((int)(t / segDur), freqs.Length - 1);
+            float freq = freqs[idx];
+            float localT = t - (idx * segDur);
+
+            float env = Mathf.Exp(-localT * 9f) * Mathf.Min(1f, localT * 50f);
+            float sparkle = Mathf.Sin(2f * Mathf.PI * freq * t) * 0.6f
+                          + Mathf.Sin(2f * Mathf.PI * (freq * 1.5f) * t) * 0.25f
+                          + Mathf.Sin(2f * Mathf.PI * (freq * 2.0f) * t) * 0.15f;
+            samples[i] = sparkle * env * 0.6f;
+        }
+
+        AudioClip clip = AudioClip.Create("PowerUp_DoublePoints", sampleCount, 1, sampleRate, false);
+        clip.SetData(samples, 0);
+        return clip;
+    }
+
+    private static AudioClip GenerarSonidoShieldAbsorb()
+    {
+        int sampleRate = 44100;
+        float duration = 0.35f;
+        int sampleCount = Mathf.FloorToInt(sampleRate * duration);
+        float[] samples = new float[sampleCount];
+
+        for (int i = 0; i < sampleCount; i++)
+        {
+            float t = (float)i / sampleRate;
+            float env = Mathf.Exp(-t * 14f);
+            float buzz = Mathf.Sin(2f * Mathf.PI * 220f * t) * Mathf.Sin(2f * Mathf.PI * 60f * t) * 0.6f;
+            float zap = (Random.value * 2f - 1f) * 0.4f;
+            samples[i] = (buzz + zap) * env * 0.7f;
+        }
+
+        AudioClip clip = AudioClip.Create("Shield_Absorb", sampleCount, 1, sampleRate, false);
+        clip.SetData(samples, 0);
+        return clip;
+    }
+
+    private static AudioClip GenerarSonidoAleteo()
+    {
+        int sampleRate = 44100;
+        float duration = 0.3f;
+        int sampleCount = Mathf.FloorToInt(sampleRate * duration);
+        float[] samples = new float[sampleCount];
+
+        for (int i = 0; i < sampleCount; i++)
+        {
+            float t = (float)i / sampleRate;
+            float env = Mathf.Sin(t / duration * Mathf.PI);
+            float whoosh = (Random.value * 2f - 1f) * Mathf.Sin(2f * Mathf.PI * 90f * t);
+            samples[i] = whoosh * env * 0.3f;
+        }
+
+        AudioClip clip = AudioClip.Create("Bird_Flap", sampleCount, 1, sampleRate, false);
         clip.SetData(samples, 0);
         return clip;
     }
