@@ -40,10 +40,11 @@ public class PistolaVR : MonoBehaviour
     private int balasEnCargador;
     private bool estaRecargando;
 
-    private Vector3 ultimaPosicion;
-    private float tiempoAgitacion;
-    private int contadorAgitacion;
-    public float umbralAgitacion = 0.015f;
+    // Shake detection
+    private Vector3 lastPos;
+    private float shakeTimer = 0f;
+    private int shakeCount = 0;
+    private float lastMoveDirection = 0f;
 
     void Awake()
     {
@@ -61,57 +62,90 @@ public class PistolaVR : MonoBehaviour
 
         if (datosArma != null) balasEnCargador = datosArma.capacidadCargador;
         
-        ActualizarTextoMunicion();
-        ultimaPosicion = transform.position;
-
-        if (textoMunicion != null)
+        // Destruir basura antigua
+        foreach (Transform t in GetComponentsInChildren<Transform>(true))
         {
-            reloadIconObj = new GameObject("ReloadIcon");
-            reloadIconObj.transform.SetParent(textoMunicion.transform.parent);
-            reloadIconObj.transform.localPosition = textoMunicion.transform.localPosition + new Vector3(0, 0.05f, 0);
-            reloadIconObj.transform.localRotation = textoMunicion.transform.localRotation;
-            
-            float scaleInvert = 1f / transform.localScale.x;
-            reloadIconObj.transform.localScale = new Vector3(scaleInvert * 0.05f, scaleInvert * 0.05f, scaleInvert * 0.05f);
-
-            SpriteRenderer sr = reloadIconObj.AddComponent<SpriteRenderer>();
-            
-#if UNITY_EDITOR
-            if (reloadSprite == null)
+            if (t != transform && (t.name == "TextoMunicion" || t.name == "CanvasMunicion" || t.name == "ReloadIcon"))
             {
-                reloadSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/DuckHunt/02_Sprites/reload.png");
+                Destroy(t.gameObject);
             }
-#endif
-            if (reloadSprite != null) sr.sprite = reloadSprite;
-            else Debug.LogError("PistolaVR: No se pudo cargar reloadSprite. Verifica que la ruta Assets/DuckHunt/02_Sprites/reload.png sea correcta.");
-            
-            reloadIconObj.SetActive(false);
         }
+
+        // Crear Holograma Dinamico a prueba de tontos
+        CrearHologramaMunicion();
+        
+        ActualizarTextoMunicion();
+        lastPos = transform.position;
+    }
+
+    void CrearHologramaMunicion()
+    {
+        GameObject holoObj = new GameObject("TextoMunicion");
+        holoObj.transform.SetParent(transform);
+        
+        Transform attachPoint = interactable.attachTransform != null ? interactable.attachTransform : transform;
+        Vector3 forwardDir = transform.forward;
+        Vector3 upDir = transform.up;
+
+        if (puntoDeDisparo != null)
+        {
+            forwardDir = puntoDeDisparo.forward;
+            upDir = puntoDeDisparo.up;
+        }
+
+        // Arriba y un poco adelante de la mano
+        holoObj.transform.position = attachPoint.position + (upDir * 0.08f) + (forwardDir * 0.06f);
+        
+        // Mirar hacia el jugador
+        holoObj.transform.rotation = Quaternion.LookRotation(forwardDir, upDir);
+        holoObj.transform.Rotate(-30f, 0f, 0f, Space.Self);
+
+        textoMunicion = holoObj.AddComponent<TextMeshPro>();
+        textoMunicion.text = "12/30";
+        textoMunicion.fontSize = 2f;
+        textoMunicion.alignment = TextAlignmentOptions.Center;
+        textoMunicion.color = Color.white;
+        textoMunicion.fontStyle = FontStyles.Bold;
+
+        // Ajustar escala para que mida 4cm reales
+        Vector3 parentScale = transform.lossyScale;
+        holoObj.transform.localScale = new Vector3(0.04f / parentScale.x, 0.04f / parentScale.y, 0.04f / parentScale.z);
+
+        // --- ICONO DE RECARGA ---
+        reloadIconObj = new GameObject("ReloadIcon");
+        reloadIconObj.transform.SetParent(transform);
+        reloadIconObj.transform.position = holoObj.transform.position + holoObj.transform.forward * 0.01f;
+        reloadIconObj.transform.rotation = holoObj.transform.rotation;
+        
+        SpriteRenderer sr = reloadIconObj.AddComponent<SpriteRenderer>();
+#if UNITY_EDITOR
+        if (reloadSprite == null) reloadSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/DuckHunt/02_Sprites/reload.png");
+#endif
+        if (reloadSprite != null) sr.sprite = reloadSprite;
+
+        // Escala absoluta de 5cm
+        reloadIconObj.transform.localScale = new Vector3(0.025f / parentScale.x, 0.025f / parentScale.y, 0.025f / parentScale.z);
+        reloadIconObj.SetActive(false);
     }
 
     void OnDestroy()
     {
-        if (interactable != null)
-        {
-            interactable.activated.RemoveListener(Disparar);
-        }
+        if (interactable != null) interactable.activated.RemoveListener(Disparar);
     }
 
     void ConfigurarLaser()
     {
         GameObject laserObj = new GameObject("LaserSight");
         laserObj.transform.SetParent(puntoDeDisparo != null ? puntoDeDisparo : transform, false);
-
         laserLine = laserObj.AddComponent<LineRenderer>();
         laserLine.startWidth = 0.008f;
         laserLine.endWidth = 0.004f;
         laserLine.positionCount = 2;
         laserLine.useWorldSpace = true;
-
-        Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
-        if (shader == null) shader = Shader.Find("Unlit/Color");
+        Shader shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
         Material laserMat = new Material(shader);
-        laserMat.SetColor("_BaseColor", colorLaser);
+        if (shader.name.Contains("Universal")) laserMat.SetColor("_BaseColor", colorLaser);
+        else laserMat.color = colorLaser;
         laserLine.material = laserMat;
     }
 
@@ -122,53 +156,62 @@ public class PistolaVR : MonoBehaviour
         if (laserLine != null && puntoDeDisparo != null)
         {
             laserLine.enabled = estaAgarrada;
-
             if (estaAgarrada)
             {
                 Vector3 origin = puntoDeDisparo.position;
                 Vector3 direction = puntoDeDisparo.forward;
                 Vector3 targetPoint = origin + (direction * distanciaLaser);
-
-                if (Physics.Raycast(origin, direction, out RaycastHit hit, distanciaLaser))
-                {
-                    targetPoint = hit.point;
-                }
-
+                if (Physics.Raycast(origin, direction, out RaycastHit hit, distanciaLaser)) targetPoint = hit.point;
                 laserLine.SetPosition(0, origin);
                 laserLine.SetPosition(1, targetPoint);
             }
         }
 
+        // DETECCION DE AGITACION ROBUSTA (Arriba y Abajo)
         if (estaAgarrada && !estaRecargando)
         {
-            float deltaY = Mathf.Abs(transform.position.y - ultimaPosicion.y);
-            if (deltaY > 0.008f)
+            float moveY = transform.position.y - lastPos.y;
+            
+            // Si el movimiento es notable (> 5mm por frame)
+            if (Mathf.Abs(moveY) > 0.005f)
             {
-                contadorAgitacion++;
-                tiempoAgitacion = Time.time;
+                float currentDir = Mathf.Sign(moveY);
+                
+                // Si cambiamos de direccion bruscamente (ej: subiamos y ahora bajamos)
+                if (currentDir != lastMoveDirection && lastMoveDirection != 0)
+                {
+                    shakeCount++;
+                    shakeTimer = 0f; // reset timer
+                }
+                lastMoveDirection = currentDir;
             }
 
-            if (Time.time - tiempoAgitacion > 0.4f)
+            shakeTimer += Time.deltaTime;
+            
+            // Si pasa mucho tiempo sin agitar, reiniciamos
+            if (shakeTimer > 0.5f)
             {
-                contadorAgitacion = 0;
+                shakeCount = 0;
+                lastMoveDirection = 0f;
             }
 
-            if (contadorAgitacion > 3)
+            // Con 3 cambios de direccion (ej: Arriba -> Abajo -> Arriba) recarga
+            if (shakeCount >= 3)
             {
                 if (datosArma != null && balasEnCargador < datosArma.capacidadCargador)
                 {
                     StartCoroutine(RutinaRecarga());
                 }
-                contadorAgitacion = 0;
+                shakeCount = 0;
             }
         }
         
         if (estaRecargando && reloadIconObj != null)
         {
-            reloadIconObj.transform.Rotate(0, 0, -360f * Time.deltaTime);
+            reloadIconObj.transform.Rotate(0, 0, -500f * Time.deltaTime, Space.Self);
         }
         
-        ultimaPosicion = transform.position;
+        lastPos = transform.position;
     }
 
     void Disparar(ActivateEventArgs arg)
@@ -178,7 +221,11 @@ public class PistolaVR : MonoBehaviour
         if (datosArma != null)
         {
             if (Time.time - tiempoUltimoDisparo < datosArma.tiempoDisparo) return;
-            if (balasEnCargador <= 0) return;
+            if (balasEnCargador <= 0)
+            {
+                StartCoroutine(RutinaRecarga());
+                return;
+            }
 
             balasEnCargador--;
             ActualizarTextoMunicion();
@@ -197,15 +244,8 @@ public class PistolaVR : MonoBehaviour
             }
         }
 
-        if (sonidoDisparo != null && audioSource != null)
-        {
-            audioSource.PlayOneShot(sonidoDisparo);
-        }
-
-        if (arg.interactorObject is XRBaseInputInteractor inputInteractor)
-        {
-            inputInteractor.SendHapticImpulse(intensidadVibracion, duracionVibracion);
-        }
+        if (sonidoDisparo != null && audioSource != null) audioSource.PlayOneShot(sonidoDisparo);
+        if (arg.interactorObject is XRBaseInputInteractor inputInteractor) inputInteractor.SendHapticImpulse(intensidadVibracion, duracionVibracion);
     }
 
     IEnumerator RutinaRecarga()
@@ -226,7 +266,7 @@ public class PistolaVR : MonoBehaviour
         estaRecargando = false;
     }
 
-    void ActualizarTextoMunicion()
+    public void ActualizarTextoMunicion()
     {
         if (textoMunicion != null && datosArma != null)
         {
@@ -236,3 +276,14 @@ public class PistolaVR : MonoBehaviour
 }
  
 
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
