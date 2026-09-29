@@ -139,10 +139,17 @@ public class VRAutoForwardMover : MonoBehaviour
 
     private IEnumerator FinDelJuegoRutina()
     {
+        // Detener musica de fondo actual
+        GameObject bgMusic = GameObject.Find("MusicaDeFondo");
+        if (bgMusic != null) Destroy(bgMusic);
+
         AudioSource audioSrc = gameObject.AddComponent<AudioSource>();
         audioSrc.playOnAwake = false;
         audioSrc.spatialBlend = 0f;
-        audioSrc.PlayOneShot(SonidosArmas.SonidoVictoria, 0.9f);
+        
+        AudioClip victoriaClip = Resources.Load<AudioClip>("Musica/victoria");
+        if (victoriaClip != null) audioSrc.PlayOneShot(victoriaClip, 0.9f);
+        else audioSrc.PlayOneShot(SonidosArmas.SonidoVictoria, 0.9f);
 
         GameObject victoryCanvasObj = CrearCanvasFinJuego(out TextMeshProUGUI txtCountdown);
 
@@ -328,5 +335,6 @@ public class VRAutoForwardMover : MonoBehaviour
         tmpDet.color = Color.white;
     }
 }
+
 
 
