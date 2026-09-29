@@ -66,7 +66,7 @@ public class Bala : MonoBehaviour
             {
                 // Impacto con Enemigo
                 EnemyTarget enemy = hit.collider.GetComponentInParent<EnemyTarget>() ?? hit.collider.GetComponent<EnemyTarget>();
-                if (enemy != null || hit.collider.CompareTag("Enemy"))
+                if (enemy != null || hit.collider.name.ToLower().Contains("pato") || hit.collider.name.ToLower().Contains("bird"))
                 {
                     if (enemy != null) enemy.OnHit();
                     else Destroy(hit.collider.gameObject);
@@ -76,7 +76,7 @@ public class Bala : MonoBehaviour
 
                 // Impacto con Power-Up
                 PowerUpItem powerUp = hit.collider.GetComponentInParent<PowerUpItem>() ?? hit.collider.GetComponent<PowerUpItem>();
-                if (powerUp != null || hit.collider.CompareTag("PowerUp"))
+                if (powerUp != null || hit.collider.name.ToLower().Contains("powerup"))
                 {
                     if (powerUp != null) powerUp.Collect();
                     Destroy(gameObject);
@@ -92,7 +92,7 @@ public class Bala : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
         EnemyTarget enemy = other.GetComponentInParent<EnemyTarget>() ?? other.GetComponent<EnemyTarget>();
-        if (enemy != null || other.CompareTag("Enemy"))
+        if (enemy != null || other.name.ToLower().Contains("pato") || other.name.ToLower().Contains("bird"))
         {
             if (enemy != null) enemy.OnHit();
             else Destroy(other.gameObject);
@@ -101,7 +101,7 @@ public class Bala : MonoBehaviour
         }
 
         PowerUpItem powerUp = other.GetComponentInParent<PowerUpItem>() ?? other.GetComponent<PowerUpItem>();
-        if (powerUp != null || other.CompareTag("PowerUp"))
+        if (powerUp != null || other.name.ToLower().Contains("powerup"))
         {
             if (powerUp != null) powerUp.Collect();
             Destroy(gameObject);

@@ -1,8 +1,8 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
-/// Trigger físico para la línea de meta al final de cada mapa.
-/// Al cruzar la línea, pasa de mapa o finaliza el juego automáticamente.
+/// Trigger fisico para la linea de meta al final de cada mapa.
+/// Al cruzar la linea, pasa de mapa o finaliza el juego automaticamente.
 /// </summary>
 [RequireComponent(typeof(Collider))]
 public class FinishLineTrigger : MonoBehaviour
@@ -22,7 +22,6 @@ public class FinishLineTrigger : MonoBehaviour
     {
         if (metaCruzada) return;
 
-        // Detectar al jugador (XR Origin, Cámara o Collider del jugador)
         VRAutoForwardMover mover = other.GetComponentInParent<VRAutoForwardMover>() 
                                 ?? other.GetComponent<VRAutoForwardMover>()
                                 ?? Object.FindAnyObjectByType<VRAutoForwardMover>();
@@ -30,7 +29,7 @@ public class FinishLineTrigger : MonoBehaviour
         if (mover != null)
         {
             metaCruzada = true;
-            Debug.Log("[FinishLineTrigger] 🏁 ¡El jugador ha cruzado la línea de meta!");
+            Debug.Log("[FinishLineTrigger] El jugador ha cruzado la linea de meta.");
             mover.CompletarNivel();
         }
     }

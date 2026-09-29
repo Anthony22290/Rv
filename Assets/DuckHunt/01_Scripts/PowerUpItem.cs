@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using TMPro;
 
@@ -9,7 +9,7 @@ using TMPro;
 [RequireComponent(typeof(Collider))]
 public class PowerUpItem : MonoBehaviour
 {
-    [Header("Configuración del Power-Up")]
+    [Header("Configuracion del Power-Up")]
     public PowerUpType powerUpType = PowerUpType.DoublePoints;
     public float floatAmplitude = 0.25f;
     public float floatFrequency = 2.5f;
@@ -33,11 +33,6 @@ public class PowerUpItem : MonoBehaviour
         {
             col.isTrigger = true;
         }
-
-        if (!gameObject.CompareTag("PowerUp"))
-        {
-            // Opcional tag si existe
-        }
     }
 
     void Start()
@@ -52,7 +47,6 @@ public class PowerUpItem : MonoBehaviour
     {
         if (collected) return;
 
-        // Animación de flotación suave y rotación
         float elapsed = Time.time - spawnTime;
         float yOffset = Mathf.Sin(elapsed * floatFrequency) * floatAmplitude;
         transform.position = initialPosition + new Vector3(0, yOffset, 0);
@@ -75,21 +69,21 @@ public class PowerUpItem : MonoBehaviour
             case PowerUpType.ExtraLife:
                 if (playerHealth != null) playerHealth.Heal(healthAmount);
                 clipToPlay = SonidosArmas.SonidoPowerUpExtraLife;
-                popupMessage = "¡+1 VIDA!";
+                popupMessage = "+1 VIDA";
                 popupColor = new Color(1f, 0.2f, 0.3f);
                 break;
 
             case PowerUpType.Shield:
                 if (playerHealth != null) playerHealth.ActivateShield(shieldDuration);
                 clipToPlay = SonidosArmas.SonidoPowerUpShield;
-                popupMessage = "¡ESCUDO DE ENERGÍA!";
+                popupMessage = "ESCUDO ACTIVADO";
                 popupColor = new Color(0f, 0.9f, 1f);
                 break;
 
             case PowerUpType.DoublePoints:
                 PlayerHUD.ActivateDoublePoints(doublePointsDuration);
                 clipToPlay = SonidosArmas.SonidoPowerUpDoublePoints;
-                popupMessage = "¡DOBLE PUNTOS 2X!";
+                popupMessage = "DOBLE PUNTOS 2X";
                 popupColor = new Color(1f, 0.85f, 0.1f);
                 break;
         }
@@ -101,7 +95,6 @@ public class PowerUpItem : MonoBehaviour
 
         MostrarPopupTexto(popupMessage, popupColor);
 
-        // Ocultar renderer y destruir
         Renderer[] renderers = GetComponentsInChildren<Renderer>();
         foreach (var r in renderers) r.enabled = false;
         if (pointLight != null) pointLight.enabled = false;
@@ -127,7 +120,6 @@ public class PowerUpItem : MonoBehaviour
         tmp.fontStyle = FontStyles.Bold;
         tmp.color = color;
 
-        // Pequeño script de flotación y desvanecimiento hacia arriba
         StartCoroutine(AnimarPopupRutina(textObj, tmp));
     }
 
@@ -159,19 +151,18 @@ public class PowerUpItem : MonoBehaviour
         {
             case PowerUpType.ExtraLife:
                 baseColor = new Color(1f, 0.15f, 0.25f);
-                label = "❤️ +1";
+                label = "+1 VIDA";
                 break;
             case PowerUpType.Shield:
                 baseColor = new Color(0f, 0.8f, 1f);
-                label = "🛡️ ESCUDO";
+                label = "ESCUDO";
                 break;
             case PowerUpType.DoublePoints:
                 baseColor = new Color(1f, 0.85f, 0f);
-                label = "⭐ 2X";
+                label = "2X PUNTOS";
                 break;
         }
 
-        // Crear contenedor visual si no existe
         if (transform.childCount == 0)
         {
             GameObject coreMesh = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -188,7 +179,6 @@ public class PowerUpItem : MonoBehaviour
             mat.SetColor("_BaseColor", baseColor);
             ren.material = mat;
 
-            // Anillo exterior giratorio
             GameObject ring = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             ring.name = "PowerUp_Ring";
             ring.transform.SetParent(transform, false);
@@ -203,7 +193,6 @@ public class PowerUpItem : MonoBehaviour
             ringMat.SetColor("_BaseColor", Color.white);
             ringRen.material = ringMat;
 
-            // Luz brillante
             GameObject lightObj = new GameObject("Point_Light");
             lightObj.transform.SetParent(transform, false);
             pointLight = lightObj.AddComponent<Light>();
@@ -212,7 +201,6 @@ public class PowerUpItem : MonoBehaviour
             pointLight.range = 5f;
             pointLight.intensity = 3.5f;
 
-            // Texto flotante 3D
             GameObject textObj = new GameObject("Label_Text");
             textObj.transform.SetParent(transform, false);
             textObj.transform.localPosition = new Vector3(0, 0.7f, 0);
@@ -230,9 +218,7 @@ public class PowerUpItem : MonoBehaviour
     {
         if (collected) return;
 
-        // Si es una bala o proyectil
-        if (other.CompareTag("Bala") || 
-            other.GetComponent<Bala>() != null || 
+        if (other.GetComponent<Bala>() != null || 
             other.name.ToLower().Contains("bala") || 
             other.name.ToLower().Contains("bullet") ||
             other.name.ToLower().Contains("pellet") ||
@@ -241,7 +227,10 @@ public class PowerUpItem : MonoBehaviour
             Collect();
             Destroy(other.gameObject);
         }
-        else if (other.CompareTag("Player") || other.GetComponentInParent<PlayerHealth>() != null)
+        else if (other.GetComponentInParent<PlayerHealth>() != null || 
+                 other.GetComponent<PlayerHealth>() != null ||
+                 other.name.ToLower().Contains("player") ||
+                 other.name.ToLower().Contains("xr origin"))
         {
             Collect();
         }

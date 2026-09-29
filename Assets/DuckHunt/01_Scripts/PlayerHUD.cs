@@ -1,37 +1,37 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 
 /// <summary>
 /// Interfaz de Usuario (HUD en Realidad Virtual) para mostrar los Puntos, la Vida del jugador y Power-Ups activos.
-/// Permanece cómodamente visible en el campo de visión del jugador con auto-generación de interfaz.
+/// Permanece comodamente visible en el campo de vision del jugador con auto-generacion de interfaz.
 /// </summary>
 public class PlayerHUD : MonoBehaviour
 {
     public static PlayerHUD Instance { get; private set; }
 
     [Header("Referencias de Texto UI")]
-    [Tooltip("Texto para mostrar la puntuación")]
+    [Tooltip("Texto para mostrar la puntuacion")]
     public TextMeshProUGUI scoreText;
 
-    [Tooltip("Texto para mostrar la vida / corazones")]
+    [Tooltip("Texto para mostrar la vida")]
     public TextMeshProUGUI healthText;
 
     [Tooltip("Texto para mostrar estados de Power-Ups")]
     public TextMeshProUGUI powerUpText;
 
-    [Header("Configuración de Posición en VR")]
-    [Tooltip("Distancia desde la cámara")]
+    [Header("Configuracion de Posicion en VR")]
+    [Tooltip("Distancia desde la camara")]
     public float distanceFromCamera = 1.35f;
 
-    [Tooltip("Desplazamiento horizontal y vertical respecto al centro de visión")]
+    [Tooltip("Desplazamiento horizontal y vertical respecto al centro de vision")]
     public Vector3 offset = new Vector3(0f, 0.42f, 0f);
 
     [Tooltip("Velocidad de seguimiento suave del HUD")]
     public float followSpeed = 9.0f;
 
-    [Header("Puntuación Global")]
+    [Header("Puntuacion Global")]
     public static int totalScore = 0;
 
     [Header("Estado de Power-Ups")]
@@ -142,12 +142,12 @@ public class PlayerHUD : MonoBehaviour
     }
 
     /// <summary>
-    /// Activa el multiplicador de doble puntos por la duración indicada en segundos.
+    /// Activa el multiplicador de doble puntos por la duracion indicada en segundos.
     /// </summary>
     public static void ActivateDoublePoints(float duration = 15f)
     {
         doublePointsTimer = Mathf.Max(doublePointsTimer, duration);
-        Debug.Log($"[PlayerHUD] ⭐ ¡DOBLE PUNTOS ACTIVADO! ({duration}s)");
+        Debug.Log($"[PlayerHUD] DOBLE PUNTOS ACTIVADO ({duration}s)");
         if (Instance != null)
         {
             Instance.UpdatePowerUpDisplay();
@@ -167,7 +167,7 @@ public class PlayerHUD : MonoBehaviour
     }
 
     /// <summary>
-    /// Suma puntos a la puntuación global (aplicando multiplicador x2 si está activo) y actualiza la interfaz.
+    /// Suma puntos a la puntuacion global (aplicando multiplicador x2 si esta activo) y actualiza la interfaz.
     /// </summary>
     public static void AddScore(int points)
     {
@@ -176,11 +176,11 @@ public class PlayerHUD : MonoBehaviour
 
         if (isDoublePointsActive)
         {
-            Debug.Log($"[PlayerHUD] 🎯 +{finalPoints} PUNTOS (⭐ 2X ACTIVO!) | Puntuación total: {totalScore}");
+            Debug.Log($"[PlayerHUD] +{finalPoints} PUNTOS (2X ACTIVO) | Total: {totalScore}");
         }
         else
         {
-            Debug.Log($"[PlayerHUD] 🎯 +{finalPoints} PUNTOS | Puntuación total: {totalScore}");
+            Debug.Log($"[PlayerHUD] +{finalPoints} PUNTOS | Total: {totalScore}");
         }
 
         if (Instance == null)
@@ -193,7 +193,7 @@ public class PlayerHUD : MonoBehaviour
     }
 
     /// <summary>
-    /// Reinicia la puntuación al iniciar una nueva partida o tras morir.
+    /// Reinicia la puntuacion al iniciar una nueva partida o tras morir.
     /// </summary>
     public static void ResetScore()
     {
@@ -253,7 +253,7 @@ public class PlayerHUD : MonoBehaviour
         if (scoreText != null)
         {
             string bonusIndicator = isDoublePointsActive ? " <color=#FFA500>[2X]</color>" : "";
-            scoreText.text = $"🎯 PUNTOS: <color=#FFD700>{score:N0}</color>{bonusIndicator}";
+            scoreText.text = $"PUNTOS: <color=#FFD700>{score:N0}</color>{bonusIndicator}";
         }
     }
 
@@ -261,20 +261,7 @@ public class PlayerHUD : MonoBehaviour
     {
         if (healthText != null)
         {
-            string hearts = "";
-            for (int i = 0; i < maxHealth; i++)
-            {
-                if (i < currentHealth)
-                {
-                    hearts += "<color=#FF3B30>❤️</color> ";
-                }
-                else
-                {
-                    hearts += "<color=#555555>🖤</color> ";
-                }
-            }
-
-            healthText.text = $"VIDA: {hearts}({currentHealth}/{maxHealth})";
+            healthText.text = $"VIDA: <color=#FF3B30>{currentHealth}</color> / {maxHealth}";
         }
     }
 
@@ -285,11 +272,11 @@ public class PlayerHUD : MonoBehaviour
         string powerUpInfo = "";
         if (isShieldActive)
         {
-            powerUpInfo += $"<color=#00E5FF>🛡️ ESCUDO ({Mathf.CeilToInt(shieldTimer)}s)</color> ";
+            powerUpInfo += $"<color=#00E5FF>[ESCUDO: {Mathf.CeilToInt(shieldTimer)}s]</color> ";
         }
         if (isDoublePointsActive)
         {
-            powerUpInfo += $"<color=#FFD700>⭐ 2X PUNTOS ({Mathf.CeilToInt(doublePointsTimer)}s)</color>";
+            powerUpInfo += $"<color=#FFD700>[2X PUNTOS: {Mathf.CeilToInt(doublePointsTimer)}s]</color>";
         }
 
         powerUpText.text = powerUpInfo;
@@ -320,7 +307,6 @@ public class PlayerHUD : MonoBehaviour
             transform.localScale = Vector3.one * 0.0016f;
         }
 
-        // Panel contenedor estilizado
         GameObject panelObj = new GameObject("HUD_Panel");
         panelObj.transform.SetParent(transform, false);
         RectTransform panelRT = panelObj.AddComponent<RectTransform>();
@@ -344,7 +330,7 @@ public class PlayerHUD : MonoBehaviour
         scoreRT.sizeDelta = Vector2.zero;
 
         scoreText = scoreObj.AddComponent<TextMeshProUGUI>();
-        scoreText.text = $"🎯 PUNTOS: <color=#FFD700>{totalScore:N0}</color>";
+        scoreText.text = $"PUNTOS: <color=#FFD700>{totalScore:N0}</color>";
         scoreText.fontSize = 32;
         scoreText.fontStyle = FontStyles.Bold;
         scoreText.alignment = TextAlignmentOptions.MidlineLeft;
@@ -359,8 +345,8 @@ public class PlayerHUD : MonoBehaviour
         healthRT.sizeDelta = Vector2.zero;
 
         healthText = healthObj.AddComponent<TextMeshProUGUI>();
-        healthText.text = "VIDA: <color=#FF3B30>❤️</color> <color=#FF3B30>❤️</color> <color=#FF3B30>❤️</color> (3/3)";
-        healthText.fontSize = 28;
+        healthText.text = "VIDA: 3 / 3";
+        healthText.fontSize = 30;
         healthText.fontStyle = FontStyles.Bold;
         healthText.alignment = TextAlignmentOptions.MidlineRight;
         healthText.color = Color.white;

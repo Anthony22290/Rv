@@ -107,19 +107,19 @@ public class VRAutoForwardMover : MonoBehaviour
 
         if (esNivelFinal || string.IsNullOrEmpty(siguienteEscena))
         {
-            Debug.Log("[VRAutoForwardMover] ¡JUEGO COMPLETADO! Mostrando pantalla final...");
+            Debug.Log("[VRAutoForwardMover] JUEGO COMPLETADO. Mostrando pantalla final...");
             StartCoroutine(FinDelJuegoRutina());
         }
         else
         {
-            Debug.Log($"[VRAutoForwardMover] ¡Mapa completado! Transicionando a: {siguienteEscena}");
+            Debug.Log($"[VRAutoForwardMover] Mapa completado. Transicionando a: {siguienteEscena}");
             StartCoroutine(TransicionSiguienteNivelRutina());
         }
     }
 
     private IEnumerator TransicionSiguienteNivelRutina()
     {
-        MostrarMensajeVR("🏆 ¡MAPA DEL DESIERTO COMPLETADO! 🏆", $"Cargando siguiente nivel: {siguienteEscena}...", new Color(0.2f, 0.8f, 0.3f));
+        MostrarMensajeVR("MAPA DEL DESIERTO COMPLETADO", $"Cargando siguiente nivel: {siguienteEscena}...", new Color(0.2f, 0.8f, 0.3f));
 
         yield return new WaitForSeconds(tiempoTransicionEntreMapas);
 
@@ -204,7 +204,7 @@ public class VRAutoForwardMover : MonoBehaviour
         titleRect.sizeDelta = Vector2.zero;
 
         TextMeshProUGUI titleTmp = titleObj.AddComponent<TextMeshProUGUI>();
-        titleTmp.text = "🏆 ¡FELICITACIONES! 🏆";
+        titleTmp.text = "FELICITACIONES";
         titleTmp.fontSize = 44;
         titleTmp.fontStyle = FontStyles.Bold;
         titleTmp.alignment = TextAlignmentOptions.Center;
@@ -219,7 +219,7 @@ public class VRAutoForwardMover : MonoBehaviour
         subRect.sizeDelta = Vector2.zero;
 
         TextMeshProUGUI subTmp = subObj.AddComponent<TextMeshProUGUI>();
-        subTmp.text = "¡HAS COMPLETADO TODOS LOS NIVELES!";
+        subTmp.text = "HAS COMPLETADO TODOS LOS NIVELES";
         subTmp.fontSize = 28;
         subTmp.alignment = TextAlignmentOptions.Center;
         subTmp.color = new Color(0.9f, 0.9f, 0.9f);
@@ -233,7 +233,7 @@ public class VRAutoForwardMover : MonoBehaviour
         scoreRect.sizeDelta = Vector2.zero;
 
         TextMeshProUGUI scoreTmp = scoreObj.AddComponent<TextMeshProUGUI>();
-        scoreTmp.text = $"🎯 PUNTUACIÓN FINAL: <color=#FFD700>{PlayerHUD.totalScore:N0}</color> PTS";
+        scoreTmp.text = $"PUNTUACION FINAL: <color=#FFD700>{PlayerHUD.totalScore:N0}</color> PTS";
         scoreTmp.fontSize = 38;
         scoreTmp.fontStyle = FontStyles.Bold;
         scoreTmp.alignment = TextAlignmentOptions.Center;

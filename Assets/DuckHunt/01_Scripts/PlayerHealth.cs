@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -8,7 +8,7 @@ public class PlayerHealth : MonoBehaviour
 {
     public static PlayerHealth Instance { get; private set; }
 
-    [Header("Configuración de Vida")]
+    [Header("Configuracion de Vida")]
     public int maxHealth = 3;
     public int currentHealth;
 
@@ -81,28 +81,21 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Restaura una cantidad de vida al jugador y actualiza el HUD.
-    /// </summary>
     public void Heal(int amount = 1)
     {
         if (isDead) return;
 
         currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
-        Debug.Log($"[PlayerHealth] ❤️ Curado +{amount} HP | Vida actual: {currentHealth}/{maxHealth}");
+        Debug.Log($"[PlayerHealth] Curado +{amount} HP | Vida actual: {currentHealth}/{maxHealth}");
 
         if (PlayerHUD.Instance != null)
         {
             PlayerHUD.Instance.UpdateHealth(currentHealth, maxHealth);
         }
 
-        // Feedback verde sutil de curación
         StartCoroutine(HealFeedbackRoutine());
     }
 
-    /// <summary>
-    /// Activa el escudo protector de energía durante el tiempo especificado.
-    /// </summary>
     public void ActivateShield(float duration = 12f)
     {
         if (isDead) return;
@@ -116,7 +109,7 @@ public class PlayerHealth : MonoBehaviour
             shieldVisualObj.SetActive(true);
         }
 
-        Debug.Log($"[PlayerHealth] 🛡️ ¡ESCUDO ACTIVADO! Duración: {duration}s");
+        Debug.Log($"[PlayerHealth] ESCUDO ACTIVADO | Duracion: {duration}s");
     }
 
     public void DesactivarEscudo()
@@ -135,10 +128,9 @@ public class PlayerHealth : MonoBehaviour
     {
         if (isDead || isInvulnerable) return;
 
-        // Si el escudo está activo, absorbe el impacto completamente
         if (isShieldActive)
         {
-            Debug.Log("[PlayerHealth] 🛡️ ¡El impacto fue absorbido por el ESCUDO!");
+            Debug.Log("[PlayerHealth] El impacto fue absorbido por el ESCUDO.");
             AudioSource.PlayClipAtPoint(SonidosArmas.SonidoShieldAbsorb, transform.position, 1.0f);
             StartCoroutine(ShieldDeflectFeedbackRoutine());
             return;
@@ -242,20 +234,16 @@ public class PlayerHealth : MonoBehaviour
             Vector3 centerPos = cam.transform.position + cam.transform.forward * 3f;
             Quaternion rotation = Quaternion.LookRotation(cam.transform.forward);
 
-            // Titulo Principal
             GameObject titleObj = new GameObject("GameOverTitle");
             titleObj.transform.position = centerPos + Vector3.up * 0.8f;
             titleObj.transform.rotation = rotation;
             var tmpTitle = titleObj.AddComponent<TMPro.TextMeshPro>();
-            tmpTitle.text = "HAS PERDIDO\n<size=35%><color=white>Apunta y haz clic (o dispara) para elegir</color></size>";
+            tmpTitle.text = "HAS PERDIDO\n<size=35%><color=white>Apunta y haz clic o dispara para elegir</color></size>";
             tmpTitle.fontSize = 7f;
             tmpTitle.alignment = TMPro.TextAlignmentOptions.Center;
             tmpTitle.color = Color.red;
 
-            // Boton Volver a Jugar
             CrearBotonVR("VOLVER A JUGAR", centerPos + Vector3.up * 0.1f, rotation, true);
-
-            // Boton Menu
             CrearBotonVR("IR AL MENU", centerPos - Vector3.up * 0.5f, rotation, false);
         }
 
@@ -359,7 +347,7 @@ public class PlayerHealth : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Enemy") || other.GetComponent<EnemyTarget>() != null)
+        if (other.GetComponent<EnemyTarget>() != null || other.name.ToLower().Contains("pato") || other.name.ToLower().Contains("bird"))
         {
             TakeDamage(1);
             var enemy = other.GetComponent<EnemyTarget>();
