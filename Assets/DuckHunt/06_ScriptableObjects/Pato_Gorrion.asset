@@ -18,7 +18,7 @@ MonoBehaviour:
   bodyColor: {r: 1, g: 1, b: 1, a: 1}
   duckMaterial: {fileID: 0}
   scale: {x: 1.2, y: 1.2, z: 1.2}
-  moveSpeed: 5.2
+  moveSpeed: 2.6
   movementPattern: 1
   waveAmplitude: 0.9
   waveFrequency: 3.5

@@ -228,11 +228,11 @@ public class MapPropsSetup : MonoBehaviour
         bannerText.transform.localScale = new Vector3(0.18f, 1.25f, 1f);
 
         string activeScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-        bool esUltimo = activeScene.Equals("Mapa2", System.StringComparison.OrdinalIgnoreCase) ||
+        bool esUltimo = activeScene.Equals("Mapa3", System.StringComparison.OrdinalIgnoreCase) ||
                         activeScene.Equals("BasicScene", System.StringComparison.OrdinalIgnoreCase);
 
         TextMeshPro tmp = bannerText.AddComponent<TextMeshPro>();
-        tmp.text = esUltimo ? "🏆 META FINAL 🏆" : "🏁 META -> SIGUIENTE MAPA 🏁";
+        tmp.text = esUltimo ? "META FINAL" : "META - SIGUIENTE NIVEL";
         tmp.fontSize = 26;
         tmp.fontStyle = FontStyles.Bold;
         tmp.alignment = TextAlignmentOptions.Center;

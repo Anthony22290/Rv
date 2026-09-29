@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a5b92f5cfee7d4499c6f7ea724ec1a2, type: 3}
   m_Name: ArmaData_pistola
   m_EditorClassIdentifier: Assembly-CSharp::ArmaDataSO
-  velocidadBala: 45
-  tiempoDisparo: 0.2
-  tiempoRecarga: 1.5
-  capacidadCargador: 15
+  velocidadBala: 55
+  tiempoDisparo: 0.12
+  tiempoRecarga: 0.8
+  capacidadCargador: 12

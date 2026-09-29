@@ -21,20 +21,20 @@ public class EnemySpawner : MonoBehaviour
     public float spawnDistanceAheadMin = 14f;
 
     [Tooltip("Distancia maxima por delante del jugador")]
-    public float spawnDistanceAheadMax = 22f;
+    public float spawnDistanceAheadMax = 24f;
 
     [Tooltip("Distancia horizontal a los lados del camino donde nacen")]
     public float spawnSideDistance = 12f;
 
     [Tooltip("Altura minima de vuelo")]
-    public float minSpawnHeight = 2.0f;
+    public float minSpawnHeight = 1.8f;
 
     [Tooltip("Altura maxima de vuelo")]
     public float maxSpawnHeight = 5.5f;
 
-    [Header("Frecuencia de Aparicion")]
-    public float spawnIntervalMin = 1.6f;
-    public float spawnIntervalMax = 3.2f;
+    [Header("Frecuencia de Aparicion (Mayor densidad)")]
+    public float spawnIntervalMin = 0.7f;
+    public float spawnIntervalMax = 1.5f;
     public bool autoSpawn = true;
 
     [Header("Power-Ups")]
@@ -96,7 +96,13 @@ public class EnemySpawner : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(Random.Range(spawnIntervalMin, spawnIntervalMax));
+            
+            // Spawn regular de 1 o 2 pájaros a la vez
             SpawnEnemyAheadOfPlayer();
+            if (Random.value < 0.45f)
+            {
+                SpawnEnemyAheadOfPlayer();
+            }
         }
     }
 
@@ -128,11 +134,11 @@ public class EnemySpawner : MonoBehaviour
         }
 
         Vector3 flightDirection;
-        bool shouldAttack = (selectedData != null && selectedData.isAggressive) || (Random.value > 0.65f);
+        bool shouldAttack = (selectedData != null && selectedData.isAggressive) || (Random.value > 0.70f);
         if (shouldAttack)
         {
             Vector3 targetHead = playerPos;
-            targetHead.y += 1.2f;
+            targetHead.y += 1.0f;
             flightDirection = (targetHead - spawnPosition).normalized;
         }
         else
