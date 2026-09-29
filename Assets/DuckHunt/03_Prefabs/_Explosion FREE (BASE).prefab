@@ -101,6 +101,10 @@ PrefabInstance:
       value: _Explosion FREE (BASE)
       objectReference: {fileID: 0}
     - target: {fileID: 7522982781472501663, guid: 017c9fcd02ca72049806a4014da0bea6, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: d9420d6ef011f7042b0873f1bf9787bb, type: 2}
+    - target: {fileID: 7522982781472501663, guid: 017c9fcd02ca72049806a4014da0bea6, type: 3}
       propertyPath: 'm_VertexStreams.Array.data[1]'
       value: 3
       objectReference: {fileID: 0}

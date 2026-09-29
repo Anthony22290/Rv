@@ -47,7 +47,7 @@ public class MapPropsSetup : MonoBehaviour
         // 1. Mesa 1: Pistola VR (Z = 18m, Lado Derecho)
         CrearMesaConArma(
             tablesRoot.transform,
-            new Vector3(1.65f, 0f, zMesa1),
+            new Vector3(0.85f, 0f, zMesa1),
             "🔫 PISTOLA 3D",
             "Assets/DuckHunt/03_Prefabs/pistola.prefab",
             woodMat, goldMat
@@ -56,7 +56,7 @@ public class MapPropsSetup : MonoBehaviour
         // 2. Mesa 2: Escopeta (Z = 65m, Lado Izquierdo)
         CrearMesaConArma(
             tablesRoot.transform,
-            new Vector3(-1.65f, 0f, zMesa2),
+            new Vector3(-0.85f, 0f, zMesa2),
             "💥 ESCOPETA",
             "Assets/DuckHunt/03_Prefabs/escopeta.prefab",
             woodMat, goldMat
@@ -65,7 +65,7 @@ public class MapPropsSetup : MonoBehaviour
         // 3. Mesa 3: Rifle de Caza (Z = 115m, Lado Derecho)
         CrearMesaConArma(
             tablesRoot.transform,
-            new Vector3(1.65f, 0f, zMesa3),
+            new Vector3(0.85f, 0f, zMesa3),
             "🎯 RIFLE DE CAZA",
             "Assets/DuckHunt/03_Prefabs/rifle de caza.prefab",
             woodMat, goldMat
@@ -74,7 +74,7 @@ public class MapPropsSetup : MonoBehaviour
         // 4. Mesa 4: Lanzagranadas / Bazuka (Z = 165m, Lado Izquierdo)
         CrearMesaConArma(
             tablesRoot.transform,
-            new Vector3(-1.65f, 0f, zMesa4),
+            new Vector3(-0.85f, 0f, zMesa4),
             "🚀 LANZAGRANADAS RPG",
             "Assets/DuckHunt/03_Prefabs/lanzagranadas.prefab",
             woodMat, goldMat
@@ -83,7 +83,7 @@ public class MapPropsSetup : MonoBehaviour
         // 5. Mesa 5: Armería Especial (Z = 205m, Lado Derecho)
         CrearMesaConArma(
             tablesRoot.transform,
-            new Vector3(1.65f, 0f, zMesa5),
+            new Vector3(0.85f, 0f, zMesa5),
             "⚡ ESCOPETA POTENCIADA",
             "Assets/DuckHunt/03_Prefabs/escopeta.prefab",
             woodMat, goldMat

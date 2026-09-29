@@ -64,12 +64,14 @@ public class VRAutoForwardMover : MonoBehaviour
     {
         posicionInicial = transform.position;
 
-        // Configuracion automatica de la secuencia de 4 mapas:
-        // 1. MapaDesierto -> Mapa2
+        // Configuracion automatica de la secuencia de mapas del juego:
+        // 1. MapaDesierto / BasicScene -> Mapa2
         // 2. Mapa2 -> Mapa3
-        // 3. Mapa3 -> Fin del Juego (MainMenu)
+        // 3. Mapa3 -> Mapa4
+        // 4. Mapa4 -> Fin del Juego (Victoria / MainMenu)
         string activeScene = SceneManager.GetActiveScene().name;
-        if (activeScene.Equals("MapaDesierto", System.StringComparison.OrdinalIgnoreCase))
+        if (activeScene.Equals("MapaDesierto", System.StringComparison.OrdinalIgnoreCase) ||
+            activeScene.Equals("BasicScene", System.StringComparison.OrdinalIgnoreCase))
         {
             siguienteEscena = "Mapa2";
             esNivelFinal = false;
@@ -79,11 +81,22 @@ public class VRAutoForwardMover : MonoBehaviour
             siguienteEscena = "Mapa3";
             esNivelFinal = false;
         }
-        else if (activeScene.Equals("Mapa3", System.StringComparison.OrdinalIgnoreCase) || 
-                 activeScene.Equals("BasicScene", System.StringComparison.OrdinalIgnoreCase))
+        else if (activeScene.Equals("Mapa3", System.StringComparison.OrdinalIgnoreCase))
         {
-            esNivelFinal = true;
+            siguienteEscena = "Mapa4";
+            esNivelFinal = false;
+        }
+        else if (activeScene.Equals("Mapa4", System.StringComparison.OrdinalIgnoreCase))
+        {
             siguienteEscena = "";
+            esNivelFinal = true;
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(siguienteEscena) && !esNivelFinal)
+            {
+                siguienteEscena = "Mapa2";
+            }
         }
 
         Debug.Log($"[VRAutoForwardMover] Escena actual: '{activeScene}'. Destino: {(esNivelFinal ? "Fin del Juego -> Menu" : $"Siguiente Nivel -> {siguienteEscena}")}");
@@ -134,11 +147,19 @@ public class VRAutoForwardMover : MonoBehaviour
     private IEnumerator TransicionSiguienteNivelRutina()
     {
         string sceneName = SceneManager.GetActiveScene().name;
-        string titulo = sceneName.Equals("MapaDesierto", System.StringComparison.OrdinalIgnoreCase) 
-            ? "MAPA DEL DESIERTO COMPLETADO" 
-            : "NIVEL COMPLETADO";
+        string titulo = "NIVEL COMPLETADO";
+        if (sceneName.Equals("MapaDesierto", System.StringComparison.OrdinalIgnoreCase))
+            titulo = "MAPA DEL DESIERTO COMPLETADO";
+        else if (sceneName.Equals("Mapa2", System.StringComparison.OrdinalIgnoreCase))
+            titulo = "MAPA 2 COMPLETADO";
+        else if (sceneName.Equals("Mapa3", System.StringComparison.OrdinalIgnoreCase))
+            titulo = "MAPA 3 COMPLETADO";
 
-        MostrarMensajeVR(titulo, $"Cargando siguiente nivel: {siguienteEscena}...", new Color(0.2f, 0.8f, 0.3f));
+        string detalle = siguienteEscena == "Mapa4" 
+            ? "Cargando Nivel Final (Mapa 4)..." 
+            : $"Cargando siguiente nivel: {siguienteEscena}...";
+
+        MostrarMensajeVR(titulo, detalle, new Color(0.2f, 0.8f, 0.3f));
 
         yield return new WaitForSeconds(tiempoTransicionEntreMapas);
 

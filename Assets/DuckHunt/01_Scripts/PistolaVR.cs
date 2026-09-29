@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
@@ -98,9 +98,14 @@ public class PistolaVR : MonoBehaviour
             puntoDeDisparo.localPosition = new Vector3(-0.52f, 0.68f, 0.00f);
             puntoDeDisparo.localEulerAngles = new Vector3(0f, -90f, 0f);
         }
+        else if (gunName.Contains("lanzagranadas") || gunName.Contains("bazuka") || gunName.Contains("rpg"))
+        {
+            puntoDeDisparo.localPosition = new Vector3(0.00f, 0.32f, 0.52f);
+            puntoDeDisparo.localEulerAngles = new Vector3(0f, 0f, 0f);
+        }
         else
         {
-            puntoDeDisparo.localPosition = new Vector3(0.00f, 0.20f, 0.52f);
+            puntoDeDisparo.localPosition = new Vector3(0.00f, 0.16f, 0.52f);
             puntoDeDisparo.localEulerAngles = new Vector3(0f, 0f, 0f);
         }
     }
