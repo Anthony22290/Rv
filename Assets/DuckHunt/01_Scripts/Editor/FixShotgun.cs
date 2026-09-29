@@ -1,13 +1,9 @@
 using UnityEngine;
 using UnityEditor;
 
-[InitializeOnLoad]
+
 public class FixShotgun
 {
-    static FixShotgun()
-    {
-        EditorApplication.delayCall += DoFix;
-    }
 
     [MenuItem("DuckHunt/Arreglar Escopeta")]
     public static void DoFix()
@@ -37,3 +33,4 @@ public class FixShotgun
     }
 }
  
+

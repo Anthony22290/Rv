@@ -70,6 +70,22 @@ public class VRAutoForwardMover : MonoBehaviour
             siguienteEscena = "Mapa3";
             esNivelFinal = false;
         }
+        else if (activeScene.Equals("Mapa3", System.StringComparison.OrdinalIgnoreCase))
+        {
+            siguienteEscena = "Mapa4";
+            esNivelFinal = false;
+        }
+        else if (activeScene.Equals("Mapa4", System.StringComparison.OrdinalIgnoreCase) || 
+                 activeScene.Equals("BasicScene", System.StringComparison.OrdinalIgnoreCase))
+        {
+            esNivelFinal = true;
+            siguienteEscena = "";
+        }
+        else if (activeScene.Equals("Mapa2", System.StringComparison.OrdinalIgnoreCase))
+        {
+            siguienteEscena = "Mapa3";
+            esNivelFinal = false;
+        }
         else if (activeScene.Equals("Mapa3", System.StringComparison.OrdinalIgnoreCase) || 
                  activeScene.Equals("BasicScene", System.StringComparison.OrdinalIgnoreCase))
         {
@@ -335,6 +351,7 @@ public class VRAutoForwardMover : MonoBehaviour
         tmpDet.color = Color.white;
     }
 }
+
 
 
 

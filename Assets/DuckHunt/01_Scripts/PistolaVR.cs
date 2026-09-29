@@ -63,12 +63,18 @@ public class PistolaVR : MonoBehaviour
 
         if (datosArma != null) balasEnCargador = datosArma.capacidadCargador;
         
-        // Destruir basura antigua
-        foreach (Transform t in GetComponentsInChildren<Transform>(true))
+        // Limpiar textos viejos si existen
+        Transform[] children = GetComponentsInChildren<Transform>(true);
+        foreach (Transform t in children)
         {
-            if (t != transform && (t.name == "TextoMunicion" || t.name == "CanvasMunicion" || t.name == "ReloadIcon"))
+            if (t != null && t != transform && (t.name == "TextoMunicion" || t.name == "CanvasMunicion" || t.name == "ReloadIcon"))
             {
+#if UNITY_EDITOR
+                if (!Application.isPlaying) DestroyImmediate(t.gameObject, true);
+                else Destroy(t.gameObject);
+#else
                 Destroy(t.gameObject);
+#endif
             }
         }
 
@@ -77,6 +83,20 @@ public class PistolaVR : MonoBehaviour
         
         ActualizarTextoMunicion();
         lastPos = transform.position;
+    }
+
+    void ConfigurarLaser()
+    {
+        GameObject laserObj = new GameObject("LaserSight");
+        laserObj.transform.SetParent(puntoDeDisparo != null ? puntoDeDisparo : transform, false);
+        laserLine = laserObj.AddComponent<LineRenderer>();
+        laserLine.useWorldSpace = true;
+        laserLine.startWidth = 0.005f;
+        laserLine.endWidth = 0.005f;
+        
+        Material mat = new Material(Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color"));
+        mat.color = Color.red;
+        laserLine.material = mat;
     }
 
     void CrearHologramaMunicion()
@@ -94,28 +114,22 @@ public class PistolaVR : MonoBehaviour
             upDir = puntoDeDisparo.up;
         }
 
-        // Arriba y un poco adelante de la mano
         holoObj.transform.position = attachPoint.position + (upDir * 0.08f) + (forwardDir * 0.06f);
-        
-        // Mirar hacia el jugador
         holoObj.transform.rotation = Quaternion.LookRotation(forwardDir, upDir);
-        holoObj.transform.Rotate(-30f, 0f, 0f, Space.Self);
 
-        textoMunicion = holoObj.AddComponent<TextMeshPro>();
+        textoMunicion = holoObj.AddComponent<TMPro.TextMeshPro>();
         textoMunicion.text = "12/30";
         textoMunicion.fontSize = 2f;
-        textoMunicion.alignment = TextAlignmentOptions.Center;
+        textoMunicion.alignment = TMPro.TextAlignmentOptions.Center;
         textoMunicion.color = Color.white;
-        textoMunicion.fontStyle = FontStyles.Bold;
+        textoMunicion.fontStyle = TMPro.FontStyles.Bold;
 
-        // Ajustar escala para que mida 4cm reales
         Vector3 parentScale = transform.lossyScale;
         holoObj.transform.localScale = new Vector3(0.04f / parentScale.x, 0.04f / parentScale.y, 0.04f / parentScale.z);
 
-        // --- ICONO DE RECARGA ---
         reloadIconObj = new GameObject("ReloadIcon");
-        reloadIconObj.transform.SetParent(holoObj.transform); // Volvemos a hacerlo hijo del texto
-        reloadIconObj.transform.localPosition = new Vector3(0, 0, -0.01f); // Justo frente al texto
+        reloadIconObj.transform.SetParent(holoObj.transform);
+        reloadIconObj.transform.localPosition = new Vector3(0, 0, -0.01f);
         reloadIconObj.transform.localRotation = Quaternion.identity;
         
         SpriteRenderer sr = reloadIconObj.AddComponent<SpriteRenderer>();
@@ -124,30 +138,8 @@ public class PistolaVR : MonoBehaviour
 #endif
         if (reloadSprite != null) sr.sprite = reloadSprite;
 
-        // Escala local pequenisima en relacion al texto
-        reloadIconObj.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f); 
+        reloadIconObj.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
         reloadIconObj.SetActive(false);
-    }
-
-    void OnDestroy()
-    {
-        if (interactable != null) interactable.activated.RemoveListener(Disparar);
-    }
-
-    void ConfigurarLaser()
-    {
-        GameObject laserObj = new GameObject("LaserSight");
-        laserObj.transform.SetParent(puntoDeDisparo != null ? puntoDeDisparo : transform, false);
-        laserLine = laserObj.AddComponent<LineRenderer>();
-        laserLine.startWidth = 0.008f;
-        laserLine.endWidth = 0.004f;
-        laserLine.positionCount = 2;
-        laserLine.useWorldSpace = true;
-        Shader shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
-        Material laserMat = new Material(shader);
-        if (shader.name.Contains("Universal")) laserMat.SetColor("_BaseColor", colorLaser);
-        else laserMat.color = colorLaser;
-        laserLine.material = laserMat;
     }
 
     void Update()
@@ -291,3 +283,10 @@ public class PistolaVR : MonoBehaviour
  
 
 
+
+
+ 
+
+ 
+
+ 
