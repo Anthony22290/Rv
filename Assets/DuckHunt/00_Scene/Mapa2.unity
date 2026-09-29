@@ -27203,9 +27203,9 @@ MonoBehaviour:
   avanzar: 1
   direccion: {x: 0, y: 0, z: 1}
   distanciaMaximaZ: 240
-  esNivelFinal: 0
+  esNivelFinal: 1
   reiniciarAlFinal: 0
-  siguienteEscena: Mapa3
+  siguienteEscena: 
   menuSceneName: MainMenu
   tiempoEsperaFinJuego: 5
   tiempoTransicionEntreMapas: 2
