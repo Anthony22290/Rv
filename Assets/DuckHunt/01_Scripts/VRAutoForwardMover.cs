@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -52,6 +52,11 @@ public class VRAutoForwardMover : MonoBehaviour
         if (targetCamera == null)
         {
             targetCamera = Camera.main;
+        }
+
+        if (GetComponent<PlayerSaveable>() == null)
+        {
+            gameObject.AddComponent<PlayerSaveable>();
         }
     }
 
@@ -136,6 +141,12 @@ public class VRAutoForwardMover : MonoBehaviour
         MostrarMensajeVR(titulo, $"Cargando siguiente nivel: {siguienteEscena}...", new Color(0.2f, 0.8f, 0.3f));
 
         yield return new WaitForSeconds(tiempoTransicionEntreMapas);
+
+        // Guardar progreso antes de pasar al nuevo mapa
+        if (SaveLoadManager.Instance != null)
+        {
+            SaveLoadManager.Instance.AutoSave();
+        }
 
         SceneManager.LoadScene(siguienteEscena);
     }

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
@@ -205,6 +205,19 @@ public class PlayerHUD : MonoBehaviour
             Instance.displayedScore = 0;
             Instance.UpdateScoreDisplay(0);
             Instance.UpdatePowerUpDisplay();
+        }
+    }
+
+    /// <summary>
+    /// Establece la puntuacion al cargar una partida guardada.
+    /// </summary>
+    public static void SetScore(int score)
+    {
+        totalScore = score;
+        if (Instance != null)
+        {
+            Instance.displayedScore = totalScore;
+            Instance.UpdateScoreDisplay(totalScore);
         }
     }
 
