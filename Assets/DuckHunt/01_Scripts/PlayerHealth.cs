@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -223,6 +223,20 @@ public class PlayerHealth : MonoBehaviour
 
     private IEnumerator VolverAlMenuRutina()
     {
+        // Detener musica de fondo
+        GameObject bgMusic = GameObject.Find("MusicaDeFondo");
+        if (bgMusic != null) Destroy(bgMusic);
+
+        // Reproducir musica de derrota
+        AudioClip pierdesClip = Resources.Load<AudioClip>("Musica/pierdes");
+        if (pierdesClip != null)
+        {
+            AudioSource src = gameObject.AddComponent<AudioSource>();
+            src.playOnAwake = false;
+            src.spatialBlend = 0f;
+            src.PlayOneShot(pierdesClip, 1.0f);
+        }
+
         if (damageOverlay != null)
         {
             damageOverlay.color = new Color(0.8f, 0.0f, 0.0f, 0.85f);
@@ -358,3 +372,5 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 }
+
+ 
