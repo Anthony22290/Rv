@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -65,6 +65,17 @@ public class VRAutoForwardMover : MonoBehaviour
             siguienteEscena = "Mapa2";
             esNivelFinal = false;
         }
+        else if (activeScene.Equals("Mapa2", System.StringComparison.OrdinalIgnoreCase))
+        {
+            siguienteEscena = "Mapa3";
+            esNivelFinal = false;
+        }
+        else if (activeScene.Equals("Mapa3", System.StringComparison.OrdinalIgnoreCase) || 
+                 activeScene.Equals("BasicScene", System.StringComparison.OrdinalIgnoreCase))
+        {
+            esNivelFinal = true;
+            siguienteEscena = "";
+        }
         else if (activeScene.Equals("Mapa2", System.StringComparison.OrdinalIgnoreCase) || 
                  activeScene.Equals("BasicScene", System.StringComparison.OrdinalIgnoreCase))
         {
@@ -119,7 +130,7 @@ public class VRAutoForwardMover : MonoBehaviour
 
     private IEnumerator TransicionSiguienteNivelRutina()
     {
-        MostrarMensajeVR("MAPA DEL DESIERTO COMPLETADO", $"Cargando siguiente nivel: {siguienteEscena}...", new Color(0.2f, 0.8f, 0.3f));
+        MostrarMensajeVR(SceneManager.GetActiveScene().name.ToUpper() + " COMPLETADO", $"Cargando siguiente nivel: {siguienteEscena}...", new Color(0.2f, 0.8f, 0.3f));
 
         yield return new WaitForSeconds(tiempoTransicionEntreMapas);
 
@@ -317,3 +328,5 @@ public class VRAutoForwardMover : MonoBehaviour
         tmpDet.color = Color.white;
     }
 }
+
+
